@@ -243,6 +243,56 @@
       border-color:var(--line);
       box-shadow:0 2px 7px rgba(16,24,40,.08);
     }
+    .scope-hint{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      margin-top:7px;
+      padding:8px 10px;
+      border:1px solid #f3d889;
+      border-radius:11px;
+      background:#fff9e8;
+      color:#6f5710;
+      font-size:12px;
+      line-height:1.35;
+      font-weight:650;
+    }
+    .scope-hint-icon{
+      flex:0 0 auto;
+      width:16px;
+      height:16px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:#f4c542;
+      color:#5e4500;
+      font-size:10px;
+      font-weight:900;
+      margin-top:1px;
+    }
+    .scope-hint-copy{min-width:0}
+    .scope-hint-title{
+      display:block;
+      color:#5f4a0d;
+      font-weight:850;
+      margin-bottom:1px;
+    }
+    .scope-hint-sub{
+      display:block;
+      color:#8b7540;
+      font-weight:600;
+    }
+    html[data-theme="dark"] .scope-hint{
+      background:#201c10;
+      border-color:#5a4a1e;
+      color:#eadb9a;
+    }
+    html[data-theme="dark"] .scope-hint-icon{
+      background:#8a6a12;
+      color:#fff0a6;
+    }
+    html[data-theme="dark"] .scope-hint-title{color:#f4df8a}
+    html[data-theme="dark"] .scope-hint-sub{color:#c8b978}
 
 
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -1169,8 +1219,6 @@
       .map-panel.learn-mode .question{font-size:21px}
       .difficulty-switch{grid-template-columns:1fr}
       .difficulty-pill{min-height:54px}
-      .scope-hint{font-size:12px;line-height:1.5;margin-top:8px;padding:9px 11px;border-radius:12px;background:rgba(255,193,7,.12);color:#8a6400;border:1px solid rgba(255,193,7,.28)}
-      body.dark .scope-hint{background:rgba(255,193,7,.10);color:#ffd76a;border-color:rgba(255,193,7,.22)}
     }
 
     @media (max-width:950px) and (orientation:landscape){
@@ -3004,11 +3052,17 @@ function updateScopeHint(){
   if(!scopeHint)return;
   const active=!!beginnerModeInput?.checked && scopeMode==="county";
   if(active){
-    scopeHint.style.display="block";
-    scopeHint.textContent="Beginner 模式下，縣市範圍僅支援「全台」；若想縮小範圍，請改選「區域」。";
+    scopeHint.style.display="flex";
+    scopeHint.innerHTML=`
+      <span class="scope-hint-icon" aria-hidden="true">i</span>
+      <span class="scope-hint-copy">
+        <span class="scope-hint-title">Beginner：縣市範圍僅限全台</span>
+        <span class="scope-hint-sub">想縮小範圍，請改用「區域」。</span>
+      </span>
+    `;
   }else{
     scopeHint.style.display="none";
-    scopeHint.textContent="";
+    scopeHint.innerHTML="";
   }
 }
 
