@@ -25,6 +25,10 @@
     .brand{font-weight:850;font-size:24px;letter-spacing:-.5px}
     .brand-row{display:flex;align-items:baseline;gap:8px}
     .author-credit{color:#98a2b3;font-size:11px;font-weight:650;letter-spacing:.02em}
+    .mobile-header-actions,.mobile-drawer-head,.mobile-settings-actions,
+    .mobile-overlay,.mobile-bottom-nav,.mobile-exam-action{display:none}
+    .danger-soft{color:#b42318;border-color:#fecdca;background:#fff}
+
     .sub{color:var(--muted);font-size:13px;margin-top:2px}
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:12px;cursor:pointer;font-weight:700}
@@ -73,6 +77,7 @@
     .town.correct{fill:#8ee5a9!important}
     .town.wrong{fill:#ff9b9b!important}
     .town.target{fill:#ffd875!important}
+    .town.missed{fill:#ff6b6b!important}
     .town.learned{fill:#d9f6e2}
     .county-border{fill:none;stroke:#111827;stroke-width:1.25;vector-effect:non-scaling-stroke;pointer-events:none}
     .quiz-card{position:relative;z-index:3;background:rgba(255,255,255,.97);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 12px 8px;text-align:center;box-shadow:none;backdrop-filter:blur(8px);flex:0 0 auto}
@@ -89,6 +94,31 @@
       align-items:center;
       justify-content:center;
     }
+    .map-panel.name-question-mode .quiz-card{
+      min-height:82px;
+      padding:10px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .map-panel.name-question-mode .quiz-label,
+    .map-panel.name-question-mode .hint{
+      display:none;
+    }
+    .map-panel.name-question-mode .question{
+      width:100%;
+      margin:0;
+      font-size:28px;
+      line-height:1.15;
+      font-weight:900;
+      text-align:center;
+      letter-spacing:-.35px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:54px;
+    }
+
     .map-panel.reverse-mode .quiz-card{padding-bottom:7px}
     .zoom{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:4}
     .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:white;font-weight:900;cursor:pointer}
@@ -114,14 +144,320 @@
       .layout.hide-left.hide-right{grid-template-columns:0 minmax(0,1fr) 0}
     }
     @media (max-width:760px){
-      .map-panel.learn-mode .question{font-size:20px}
-      .map-panel.learn-mode .quiz-card{min-height:66px}
-      html,body{height:auto;overflow:auto}
-      .app{height:auto;min-height:100vh;padding:10px;overflow:visible}.topbar{align-items:flex-start}.brand{font-size:20px}
-      .layout{display:flex;flex-direction:column;height:auto}.sidebar{order:1}.map-panel{order:2;min-height:68vh}.right{order:3;display:flex}
-      #map{min-height:62vh}.question{font-size:18px}
-      .answers{grid-template-columns:1fr 1fr}
-      .mode-grid{grid-template-columns:1fr 1fr}.mode-btn{font-size:12px;padding:10px 6px}
+      :root{--mobile-header-h:58px;--mobile-nav-h:66px}
+
+      html,body{
+        width:100%;
+        height:100%;
+        height:100dvh;
+        overflow:hidden;
+        overscroll-behavior:none;
+        background:#eef2f7;
+      }
+      body{position:fixed;inset:0}
+
+      .app{
+        width:100%;
+        height:100dvh;
+        min-height:0;
+        padding:0;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+      }
+
+      .topbar{
+        height:var(--mobile-header-h);
+        min-height:var(--mobile-header-h);
+        margin:0;
+        padding:8px 10px 7px 12px;
+        background:rgba(248,250,252,.96);
+        backdrop-filter:blur(14px);
+        border-bottom:1px solid var(--line);
+        align-items:center;
+        flex:0 0 auto;
+        z-index:120;
+      }
+      .topbar>div:first-child{min-width:0}
+      .brand-row{gap:5px;align-items:baseline}
+      .brand{font-size:17px;white-space:nowrap;letter-spacing:-.3px}
+      .author-credit{font-size:9px;white-space:nowrap}
+      .sub{display:none}
+      .top-actions{display:none!important}
+
+      .mobile-header-actions{
+        display:flex;
+        align-items:center;
+        gap:7px;
+        flex:0 0 auto;
+      }
+      .mobile-icon-btn,.mobile-progress-btn,.mobile-close-btn{
+        border:1px solid var(--line);
+        background:#fff;
+        color:#111827;
+        box-shadow:0 1px 2px rgba(15,23,42,.04);
+      }
+      .mobile-icon-btn{
+        width:42px;height:42px;border-radius:12px;
+        font-size:21px;font-weight:800;line-height:1;
+      }
+      .mobile-progress-btn{
+        height:42px;
+        min-width:72px;
+        border-radius:12px;
+        padding:0 10px;
+        font-size:13px;
+        font-weight:850;
+        letter-spacing:-.2px;
+      }
+
+      .layout{
+        position:relative;
+        display:block;
+        flex:1 1 auto;
+        width:100%;
+        height:auto;
+        min-height:0;
+        overflow:hidden;
+      }
+
+      .map-panel,
+      .layout.hide-left .map-panel,
+      .layout.hide-right .map-panel,
+      .layout.hide-left.hide-right .map-panel{
+        position:absolute;
+        inset:0;
+        width:100%;
+        height:100%;
+        min-height:0;
+        border:0;
+        border-radius:0;
+        box-shadow:none;
+        background:linear-gradient(#f8fafc,#eef2f7);
+        display:flex!important;
+      }
+
+      #map{
+        width:100%;
+        height:100%;
+        min-height:0;
+        touch-action:none;
+        overscroll-behavior:none;
+      }
+
+      .quiz-card{
+        flex:0 0 auto;
+        border-radius:0;
+        border-left:0;
+        border-right:0;
+        padding:7px 10px;
+        min-height:54px;
+        background:rgba(255,255,255,.95);
+        backdrop-filter:blur(10px);
+        z-index:3;
+      }
+      .map-panel.learn-mode .quiz-card{
+        min-height:58px;
+        padding:7px 10px;
+      }
+      .map-panel.learn-mode .question{
+        font-size:21px;
+        line-height:1.15;
+      }
+      .map-panel.name-question-mode .quiz-card{
+        min-height:66px;
+        padding:7px 12px;
+      }
+      .map-panel.name-question-mode .question{
+        min-height:50px;
+        font-size:24px;
+        line-height:1.12;
+        text-align:center;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+      .question{font-size:19px;line-height:1.15}
+      .quiz-label{font-size:9px}
+      .hint,.feedback{font-size:11px}
+      .answers{
+        grid-template-columns:1fr 1fr;
+        gap:6px;
+        margin-top:7px!important;
+      }
+      .answer-btn{font-size:11px;padding:8px 6px}
+
+      .zoom{
+        right:10px;
+        bottom:calc(var(--mobile-nav-h) + 13px + env(safe-area-inset-bottom));
+        gap:7px;
+      }
+      .zoom button{
+        width:42px;height:42px;border-radius:13px;font-size:21px;
+      }
+
+      /* Settings drawer */
+      .sidebar,
+      .layout.hide-left .sidebar{
+        display:flex!important;
+        position:fixed;
+        z-index:310;
+        top:0;
+        left:0;
+        bottom:0;
+        width:min(86vw,350px);
+        height:100dvh;
+        max-height:none;
+        padding:16px 16px calc(18px + env(safe-area-inset-bottom));
+        border-radius:0 20px 20px 0;
+        border-left:0;
+        overflow-y:auto;
+        overscroll-behavior:contain;
+        transform:translateX(-105%);
+        transition:transform .22s cubic-bezier(.2,.8,.2,1);
+        box-shadow:0 18px 55px rgba(15,23,42,.22);
+        background:#fff;
+      }
+      .sidebar.mobile-open{transform:translateX(0)}
+      .sidebar-mode-section{display:none}
+      .mobile-drawer-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin:-2px 0 4px;
+        padding-bottom:12px;
+        border-bottom:1px solid var(--line);
+      }
+      .mobile-drawer-title{font-size:20px;font-weight:900;letter-spacing:-.3px}
+      .mobile-drawer-sub{font-size:11px;color:var(--muted);margin-top:2px}
+      .mobile-close-btn{
+        width:38px;height:38px;border-radius:12px;
+        font-size:24px;line-height:1;
+      }
+      .mobile-settings-actions{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+      }
+      .mobile-settings-actions #mobileResetStatsBtn{grid-column:1/-1}
+      .sidebar .control select,.sidebar .option-select{font-size:15px;min-height:46px}
+      .sidebar .checkrow{font-size:14px}
+      .sidebar .section-title{font-size:12px}
+
+      /* Mastery bottom sheet */
+      .right,
+      .layout.hide-right .right{
+        display:flex!important;
+        position:fixed;
+        z-index:320;
+        left:0;
+        right:0;
+        bottom:0;
+        top:auto;
+        width:100%;
+        height:auto;
+        max-height:min(78dvh,690px);
+        padding:14px 14px calc(18px + env(safe-area-inset-bottom));
+        border-radius:22px 22px 0 0;
+        border-bottom:0;
+        overflow-y:auto;
+        overscroll-behavior:contain;
+        transform:translateY(105%);
+        transition:transform .23s cubic-bezier(.2,.8,.2,1);
+        box-shadow:0 -16px 55px rgba(15,23,42,.2);
+        background:#fff;
+      }
+      .right.mobile-open{transform:translateY(0)}
+      .right .mobile-drawer-head{position:sticky;top:-14px;background:#fff;z-index:2;padding-top:4px}
+
+      .mobile-overlay{
+        position:fixed;
+        display:block;
+        z-index:300;
+        inset:0;
+        background:rgba(15,23,42,.34);
+        opacity:0;
+        visibility:hidden;
+        transition:opacity .2s ease,visibility .2s ease;
+      }
+      .mobile-overlay.open{opacity:1;visibility:visible}
+
+      /* Bottom mode bar */
+      .mobile-bottom-nav{
+        position:fixed;
+        z-index:200;
+        left:8px;
+        right:8px;
+        bottom:calc(8px + env(safe-area-inset-bottom));
+        height:var(--mobile-nav-h);
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:5px;
+        padding:6px;
+        border:1px solid rgba(208,213,221,.9);
+        border-radius:18px;
+        background:rgba(255,255,255,.95);
+        backdrop-filter:blur(16px);
+        box-shadow:0 10px 30px rgba(15,23,42,.14);
+      }
+      .mobile-mode-btn{
+        min-width:0;
+        padding:7px 3px;
+        border-radius:13px;
+        font-size:12px;
+        line-height:1;
+      }
+
+      .mobile-exam-action{
+        position:fixed;
+        display:none;
+        z-index:205;
+        left:12px;
+        right:12px;
+        bottom:calc(var(--mobile-nav-h) + 17px + env(safe-area-inset-bottom));
+      }
+      .mobile-exam-action.visible{display:block}
+      .mobile-exam-btn{
+        width:100%;
+        min-height:48px;
+        border:0;
+        border-radius:15px;
+        background:#111827;
+        color:#fff;
+        font-size:15px;
+        font-weight:850;
+        box-shadow:0 10px 25px rgba(15,23,42,.22);
+      }
+      .mobile-exam-btn.stop{
+        background:#fff;
+        color:#b42318;
+        border:1px solid #fda29b;
+      }
+
+      /* During an active exam, make the map the focus. */
+      body.mobile-exam-active .mobile-bottom-nav{display:none}
+      body.mobile-exam-active .mobile-exam-action{
+        bottom:calc(10px + env(safe-area-inset-bottom));
+      }
+      body.mobile-exam-active .zoom{
+        bottom:calc(70px + env(safe-area-inset-bottom));
+      }
+
+      .stats{grid-template-columns:1fr 1fr}
+      .weak-list{padding-bottom:4px}
+    }
+
+    @media (max-width:390px){
+      .map-panel.name-question-mode .question{font-size:21px}
+      .map-panel.learn-mode .question{font-size:19px}
+    }
+
+    @media (max-width:950px) and (orientation:landscape){
+      .sidebar{width:min(58vw,360px)}
+      .right{left:auto;width:min(52vw,430px);max-height:100dvh;border-radius:20px 0 0 20px}
+      .mobile-bottom-nav{left:50%;right:auto;width:min(520px,68vw);transform:translateX(-50%)}
+      .mobile-exam-action{left:50%;right:auto;width:min(500px,64vw);transform:translateX(-50%)}
     }
   </style>
   <!-- Administrative English names:
@@ -140,6 +476,12 @@
         </div>
       <div class="sub">台灣鄉鎮市區互動地圖訓練</div>
     </div>
+    <div class="mobile-header-actions">
+      <button class="mobile-icon-btn" id="mobileMenuBtn" aria-label="開啟設定">☰</button>
+      <button class="mobile-progress-btn" id="mobileProgressBtn" aria-label="查看學習進度">
+        <span id="mobileMastered">0</span>/<span id="mobileTotal">368</span>
+      </button>
+    </div>
     <div class="top-actions">
       <button class="btn" id="adminNameLangBtn" title="切換行政區名稱語言">行政區英文</button>
       <button class="btn panel-toggle" id="toggleLeft">隱藏訓練面板</button>
@@ -152,8 +494,15 @@
   </div>
 
   <div class="layout">
-    <aside class="panel sidebar">
-      <div>
+    <aside class="panel sidebar" id="settingsDrawer">
+      <div class="mobile-drawer-head">
+        <div>
+          <div class="mobile-drawer-title">設定</div>
+          <div class="mobile-drawer-sub">台灣行政區訓練 · Ru1zly</div>
+        </div>
+        <button class="mobile-close-btn" id="closeMobileMenu" aria-label="關閉設定">×</button>
+      </div>
+      <div class="sidebar-mode-section">
         <div class="section-title">Training mode</div>
         <div class="mode-grid" style="margin-top:8px">
           <button class="mode-btn" data-mode="find" title="看到地名，點地圖位置">Find</button>
@@ -180,7 +529,14 @@
             </select>
           </div>
           <label class="checkrow"><input type="checkbox" id="hardMode"> Hard mode｜不保留答對區域</label>
+          <label class="checkrow"><input type="checkbox" id="extremeMode"> Extreme mode｜答錯不標示正確位置</label>
         </div>
+      </div>
+
+      <div class="mobile-settings-actions">
+        <button class="btn" id="mobileLangBtn">行政區英文</button>
+        <button class="btn" id="mobileResetViewBtn">重設地圖</button>
+        <button class="btn danger-soft" id="mobileResetStatsBtn">清除進度</button>
       </div>
 
       <div>
@@ -210,7 +566,14 @@
       </div>
     </main>
 
-    <aside class="panel right">
+    <aside class="panel right" id="progressDrawer">
+      <div class="mobile-drawer-head">
+        <div>
+          <div class="mobile-drawer-title">學習進度</div>
+          <div class="mobile-drawer-sub">Mastery / Weak Areas</div>
+        </div>
+        <button class="mobile-close-btn" id="closeMobileProgress" aria-label="關閉學習進度">×</button>
+      </div>
       <div class="card">
         <div class="section-title">Mastery</div>
         <div class="big"><span id="mastered">0</span> / <span id="totalTowns">—</span></div>
@@ -231,6 +594,19 @@
       </div>
     </aside>
   </div>
+
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+
+  <div class="mobile-exam-action" id="mobileExamAction">
+    <button class="mobile-exam-btn" id="mobileExamBtn">開始測驗</button>
+  </div>
+
+  <nav class="mobile-bottom-nav" id="mobileModeBar" aria-label="Training mode">
+    <button class="mode-btn mobile-mode-btn" data-mode="find">Find</button>
+    <button class="mode-btn mobile-mode-btn" data-mode="reverse">Reverse</button>
+    <button class="mode-btn mobile-mode-btn active" data-mode="learn">Learn</button>
+    <button class="mode-btn mobile-mode-btn" data-mode="weak">Weak</button>
+  </nav>
 </div>
 
 <script>
@@ -282,6 +658,29 @@ function adminCountyName(featureOrName){
   return adminNameLanguage==="en"
     ? (OFFICIAL_COUNTY_EN.get(chinese)||chinese||"—")
     : (chinese||"—");
+}
+
+function hasDuplicateAdministrativeName(feature){
+  if(!feature)return false;
+  const rawName=(feature.properties||{}).TOWNNAME||"";
+  return (townNameCounts.get(rawName)||0)>1;
+}
+
+function examAdministrativeName(feature){
+  if(!feature)return "—";
+
+  const town=adminTownName(feature);
+  if(!hasDuplicateAdministrativeName(feature))return town;
+
+  const county=adminCountyName(feature);
+
+  // Chinese is compact and reads naturally without a separator:
+  // 臺中市東區 / 臺南市東區
+  // English keeps a normal space:
+  // Taichung City East District
+  return adminNameLanguage==="en"
+    ? `${county} ${town}`
+    : `${county}${town}`;
 }
 
 function adminTownLines(feature){
@@ -351,6 +750,7 @@ const DATA_URLS = [
   "https://cdn.jsdelivr.net/npm/taiwan-atlas/towns-10t.json"
 ];
 let topo, towns=[], counties=[], current=null, currentStart=0, mode="learn", answered=false;
+let townNameCounts=new Map();
 
 const MAP_W=1000;
 const MAP_H=1200;
@@ -367,6 +767,7 @@ let activeScopeTransform=d3.zoomIdentity;
 let countyScopedView=false;
 let session={correct:0,wrong:0,times:[]};
 let correctHistory=new Set();
+let missedHistory=new Set();
 
 let examActive=false;
 let examBaselineStats=null;
@@ -597,6 +998,23 @@ function applyPersistentCorrect(){
     .classed("correct",true);
 }
 
+function applyPersistentMissed(){
+  const extreme=document.querySelector("#extremeMode")?.checked;
+  townLayer.selectAll(".town").classed("missed",false);
+
+  if(extreme || mode==="learn")return;
+
+  townLayer
+    .selectAll(".town")
+    .filter(d=>missedHistory.has(sKey(d)))
+    .classed("missed",true);
+}
+
+function applyPersistentMarks(){
+  applyPersistentCorrect();
+  applyPersistentMissed();
+}
+
 function countyTransformFor(name){
   return countyTransforms.get(name)||d3.zoomIdentity;
 }
@@ -779,7 +1197,7 @@ function applyMapState({resetView=false}={}){
   applyScopeVisibility();
   applyBorderMode();
   applyLabelMode();
-  applyPersistentCorrect();
+  applyPersistentMarks();
 
   if(resetView){
     const baseK=activeScopeTransform.k||1;
@@ -923,12 +1341,29 @@ function updateLabelLayout(){
 function updateExamButtons(){
   const isQuizMode=mode!=="learn";
   const startButton=document.querySelector("#startExamBtn");
+  const stopButton=document.querySelector("#stopExamBtn");
 
   startButton.style.display=isQuizMode&&!examActive?"":"none";
   startButton.textContent=examCompleted?"重新開始":"開始測驗";
+  stopButton.style.display=isQuizMode&&examActive?"":"none";
 
-  document.querySelector("#stopExamBtn").style.display=
-    isQuizMode&&examActive?"":"none";
+  const mobileAction=document.querySelector("#mobileExamAction");
+  const mobileButton=document.querySelector("#mobileExamBtn");
+
+  if(mobileAction&&mobileButton){
+    const shouldShow=isQuizMode;
+    mobileAction.classList.toggle("visible",shouldShow);
+
+    if(examActive){
+      mobileButton.textContent="停止並取消";
+      mobileButton.classList.add("stop");
+      document.body.classList.add("mobile-exam-active");
+    }else{
+      mobileButton.textContent=examCompleted?"重新開始":"開始測驗";
+      mobileButton.classList.remove("stop");
+      document.body.classList.remove("mobile-exam-active");
+    }
+  }
 }
 
 function showExamReadyState(){
@@ -955,6 +1390,7 @@ function startExam(){
   examBaselineCorrectHistory=new Set(correctHistory);
 
   session={correct:0,wrong:0,times:[]};
+  missedHistory=new Set();
   updateSession();
 
   buildExamQuestionPool();
@@ -998,6 +1434,7 @@ function stopExam({restore=true}={}){
   examQuestionPool=[];
   examQuestionIndex=0;
   examCompleted=false;
+  missedHistory=new Set();
   session={correct:0,wrong:0,times:[]};
 
   clearMarks();
@@ -1008,6 +1445,9 @@ function stopExam({restore=true}={}){
 
 function setMode(m){
   if(examActive)stopExam({restore:true});
+  if(!examActive && mode!==m){
+    missedHistory=new Set();
+  }
 
   mode=m;
   answered=false;
@@ -1023,6 +1463,7 @@ function setMode(m){
   const panel=document.querySelector(".map-panel");
   panel.classList.toggle("learn-mode",m==="learn");
   panel.classList.toggle("reverse-mode",m==="reverse");
+  panel.classList.toggle("name-question-mode",m==="find"||m==="weak");
 
   if(m==="learn")document.querySelector("#modeLabel").textContent="LEARN";
   else if(m==="reverse")document.querySelector("#modeLabel").textContent="REVERSE";
@@ -1040,8 +1481,14 @@ function setMode(m){
   updateExamButtons();
 }
 function clearMarks(){
-  townLayer.selectAll(".town").classed("wrong",false).classed("target",false).classed("correct",false);
-  applyPersistentCorrect();
+  townLayer
+    .selectAll(".town")
+    .classed("wrong",false)
+    .classed("target",false)
+    .classed("correct",false)
+    .classed("missed",false);
+
+  applyPersistentMarks();
 }
 function resetCurrentPlaceCard(){
   document.querySelector("#placeName").textContent="—";
@@ -1092,7 +1539,7 @@ function nextQuestion(){
     makeChoices();
     scheduleExamTask(()=>zoomToContext(current),60);
   }else{
-    document.querySelector("#question").textContent=adminTownName(current);
+    document.querySelector("#question").textContent=examAdministrativeName(current);
     document.querySelector("#hint").textContent="";
   }
 
@@ -1108,7 +1555,7 @@ function makeChoices(){
   const box=document.querySelector("#answers"); box.innerHTML=""; box.style.display="grid";
   picks.forEach(f=>{
     const b=document.createElement("button");b.className="answer-btn";
-    b.textContent=adminCountyName(f)+" · "+adminTownName(f);
+    b.textContent=examAdministrativeName(f);
     b.dataset.key=sKey(f);
     b.onclick=()=>answerReverse(f,b);box.appendChild(b);
   });
@@ -1121,7 +1568,7 @@ function answerReverse(f,b){
     answered=true; session.correct++;session.times.push(sec);saveStat(current,true,sec);
     correctHistory.add(sKey(current));
     b.style.background="#dcfce7";
-    document.querySelector("#feedback").textContent=`✅ 正確：${adminCountyName(current)} ${adminTownName(current)} · ${sec.toFixed(1)}s`;
+    document.querySelector("#feedback").textContent=`✅ 正確：${examAdministrativeName(current)} · ${sec.toFixed(1)}s`;
     flashFeature(current,"correct"); updateSession();
     scheduleExamTask(nextQuestion,750);
   }else{
@@ -1134,9 +1581,11 @@ function answerReverse(f,b){
 
     if(correctBtn)correctBtn.style.background="#dcfce7";
 
-    flashFeature(current,"target");
+    missedHistory.add(sKey(current));
+    applyPersistentMissed();
+
     document.querySelector("#feedback").textContent=
-      `❌ 正解：${adminCountyName(current)} ${adminTownName(current)}`;
+      `❌ 正解：${examAdministrativeName(current)}`;
 
     scheduleExamTask(nextQuestion,1700);
   }
@@ -1160,18 +1609,22 @@ function handleTownClick(d,event){
     answered=true;session.correct++;session.times.push(sec);saveStat(current,true,sec);
     correctHistory.add(sKey(current));
     flashFeature(d,"correct");
-    document.querySelector("#feedback").textContent=`✅ ${adminCountyName(current)} ${adminTownName(current)} · ${sec.toFixed(1)}s`;
+    document.querySelector("#feedback").textContent=`✅ ${examAdministrativeName(current)} · ${sec.toFixed(1)}s`;
     updateSession();
     scheduleExamTask(nextQuestion,750);
   }else{
     session.wrong++;saveStat(current,false,sec);
-    flashFeature(d,"wrong",1700);
     updateSession();
 
     answered=true;
-    flashFeature(current,"target");
+
+    // Do not highlight the incorrectly clicked location.
+    // Persistently mark only the location that should have been clicked.
+    missedHistory.add(sKey(current));
+    applyPersistentMissed();
+
     document.querySelector("#feedback").textContent=
-      `❌ 你點到 ${adminTownName(d)}｜正解：${adminTownName(current)}`;
+      `❌ 你點到 ${examAdministrativeName(d)}｜正解：${examAdministrativeName(current)}`;
 
     scheduleExamTask(nextQuestion,1700);
   }
@@ -1181,7 +1634,7 @@ function flashFeature(f,cls,timeout=0){
   if(timeout){
     scheduleExamTask(()=>{
       sel.classed(cls,false);
-      if(cls==="correct")applyPersistentCorrect();
+      if(cls==="correct")applyPersistentMarks();
     },timeout);
   }
 }
@@ -1272,6 +1725,10 @@ function refreshSide(){
   document.querySelector("#mastered").textContent=mastered;
   document.querySelector("#totalTowns").textContent=towns.length||"—";
   document.querySelector("#masteryBar").style.width=(towns.length?mastered/towns.length*100:0)+"%";
+  const mobileMastered=document.querySelector("#mobileMastered");
+  const mobileTotal=document.querySelector("#mobileTotal");
+  if(mobileMastered)mobileMastered.textContent=mastered;
+  if(mobileTotal)mobileTotal.textContent=towns.length||"—";
   const weak=towns.map(f=>({f,s:getStat(f)})).filter(x=>x.s.right+x.s.wrong>0)
     .sort((a,b)=>{
       const aa=a.s.right/(a.s.right+a.s.wrong),bb=b.s.right/(b.s.right+b.s.wrong);
@@ -1282,7 +1739,13 @@ function refreshSide(){
   weak.forEach(({f,s})=>{
     const n=s.right+s.wrong,acc=Math.round(s.right/n*100),div=document.createElement("div");div.className="weak-item";
     div.innerHTML=`<span>${adminCountyName(f)} · <b>${adminTownName(f)}</b></span><span class="pill ${mastery(f)}">${acc}%</span>`;
-    div.onclick=()=>{current=f;updateCurrentCard(f);zoomToContext(f)};box.appendChild(div);
+    div.onclick=()=>{
+      current=f;
+      updateCurrentCard(f);
+      zoomToContext(f);
+      if(window.matchMedia("(max-width:760px)").matches)closeMobilePanels();
+    };
+    box.appendChild(div);
   });
 }
 function populateCounties(){
@@ -1304,6 +1767,11 @@ function populateCounties(){
 function refreshAdministrativeNameLanguage(){
   document.querySelector("#adminNameLangBtn").textContent=
     adminNameLanguage==="zh"?"行政區英文":"行政區中文";
+  const mobileLangButton=document.querySelector("#mobileLangBtn");
+  if(mobileLangButton){
+    mobileLangButton.textContent=
+      adminNameLanguage==="zh"?"行政區英文":"行政區中文";
+  }
 
   const countySelect=document.querySelector("#countyFilter");
   for(const option of countySelect.options){
@@ -1348,12 +1816,12 @@ function refreshAdministrativeNameLanguage(){
       document.querySelector("#question").textContent=
         adminCountyName(current)+" "+adminTownName(current);
     }else if(mode==="find" && examActive){
-      document.querySelector("#question").textContent=adminTownName(current);
+      document.querySelector("#question").textContent=examAdministrativeName(current);
     }else if(mode==="reverse" && examActive){
       for(const button of document.querySelectorAll(".answer-btn")){
         const feature=towns.find(item=>sKey(item)===button.dataset.key);
         if(feature){
-          button.textContent=adminCountyName(feature)+" · "+adminTownName(feature);
+          button.textContent=examAdministrativeName(feature);
         }
       }
     }
@@ -1386,6 +1854,14 @@ async function init(){
     topo=await loadTopoWithFallback();
     towns=topojson.feature(topo,topo.objects.towns).features;
     counties=topo.objects.counties?topojson.feature(topo,topo.objects.counties).features:[];
+
+    townNameCounts=new Map();
+    for(const feature of towns){
+      const rawName=(feature.properties||{}).TOWNNAME||"";
+      if(rawName){
+        townNameCounts.set(rawName,(townNameCounts.get(rawName)||0)+1);
+      }
+    }
     if(!towns.length) throw new Error("找不到鄉鎮市區資料");
     populateCounties();buildStaticMap();refreshSide();updateSession();setMode("learn");updateExamButtons();
     document.querySelector("#loading").style.display="none";
@@ -1403,7 +1879,53 @@ document.querySelector("#adminNameLangBtn").onclick=()=>{
   refreshAdministrativeNameLanguage();
 };
 
-document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+const settingsDrawer=document.querySelector("#settingsDrawer");
+const progressDrawer=document.querySelector("#progressDrawer");
+const mobileOverlay=document.querySelector("#mobileOverlay");
+
+function closeMobilePanels(){
+  settingsDrawer?.classList.remove("mobile-open");
+  progressDrawer?.classList.remove("mobile-open");
+  mobileOverlay?.classList.remove("open");
+}
+
+function openMobilePanel(panel){
+  closeMobilePanels();
+  panel?.classList.add("mobile-open");
+  mobileOverlay?.classList.add("open");
+}
+
+document.querySelector("#mobileMenuBtn").onclick=()=>openMobilePanel(settingsDrawer);
+document.querySelector("#mobileProgressBtn").onclick=()=>openMobilePanel(progressDrawer);
+document.querySelector("#closeMobileMenu").onclick=closeMobilePanels;
+document.querySelector("#closeMobileProgress").onclick=closeMobilePanels;
+mobileOverlay.onclick=closeMobilePanels;
+
+document.querySelector("#mobileLangBtn").onclick=()=>{
+  document.querySelector("#adminNameLangBtn").click();
+};
+
+document.querySelector("#mobileResetViewBtn").onclick=()=>{
+  document.querySelector("#resetView").click();
+  closeMobilePanels();
+};
+
+document.querySelector("#mobileResetStatsBtn").onclick=()=>{
+  document.querySelector("#resetStats").click();
+};
+
+document.querySelector("#mobileExamBtn").onclick=()=>{
+  if(examActive)stopExam({restore:true});
+  else startExam();
+};
+
+document.querySelector("#hardMode").onchange=applyPersistentCorrect;
+document.querySelector("#extremeMode").onchange=applyPersistentMissed;
+
+document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
+  setMode(b.dataset.mode);
+  if(b.classList.contains("mobile-mode-btn"))closeMobilePanels();
+});
 document.querySelector("#startExamBtn").onclick=startExam;
 document.querySelector("#stopExamBtn").onclick=()=>stopExam({restore:true});
 document.querySelector("#countyFilter").onchange=()=>{
@@ -1442,6 +1964,7 @@ document.querySelector("#resetStats").onclick=()=>{
     if(examActive)stopExam({restore:true});
     stats={};
     correctHistory=new Set();
+    missedHistory=new Set();
     localStorage.removeItem(STORE_KEY);
     session={correct:0,wrong:0,times:[]};
     updateSession();
