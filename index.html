@@ -1614,6 +1614,26 @@ const REGION_DEFS=[
 ];
 const REGION_MAP=new Map(REGION_DEFS.map(region=>[region.id,region]));
 
+function normalizeCountyName(name){
+  const value=String(name||"").trim();
+  const aliases=new Map([
+    ["台北市","臺北市"],
+    ["台中市","臺中市"],
+    ["台南市","臺南市"],
+    ["台東縣","臺東縣"]
+  ]);
+  return aliases.get(value)||value;
+}
+
+function countyBelongsToRegion(countyName,regionId){
+  if(regionId==="ALL")return true;
+  const region=REGION_MAP.get(regionId);
+  if(!region?.counties)return false;
+
+  const normalizedCounty=normalizeCountyName(countyName);
+  return region.counties.some(name=>normalizeCountyName(name)===normalizedCounty);
+}
+
 const MAP_W=1000;
 const MAP_H=1200;
 const MAP_PAD=34;
@@ -1797,10 +1817,9 @@ function featureMatchesCurrentScope(feature,scopeValue=currentScopeName(),kind=s
 
   const countyName=(feature?.properties?.COUNTYNAME)||"";
 
-  if(kind==="county")return countyName===scopeValue;
+  if(kind==="county")return normalizeCountyName(countyName)===normalizeCountyName(scopeValue);
 
-  const region=REGION_MAP.get(scopeValue);
-  return !!region?.counties?.includes(countyName);
+  return countyBelongsToRegion(countyName,scopeValue);
 }
 
 function featuresInCurrentScope(source=towns){
@@ -1976,7 +1995,7 @@ function buildStaticMap(){
   }
 
   for(const region of REGION_DEFS.filter(item=>item.id!=="ALL")){
-    const features=towns.filter(f=>region.counties.includes(f.properties.COUNTYNAME));
+    const features=towns.filter(f=>countyBelongsToRegion(f.properties.COUNTYNAME,region.id));
     if(!features.length)continue;
 
     const collection={type:"FeatureCollection",features};
@@ -2146,10 +2165,9 @@ function nodeMatchesActiveScope(node){
 
   const countyName=node.getAttribute("data-county")||"";
 
-  if(scopeMode==="county")return countyName===activeScope;
+  if(scopeMode==="county")return normalizeCountyName(countyName)===normalizeCountyName(activeScope);
 
-  const region=REGION_MAP.get(activeScope);
-  return !!region?.counties?.includes(countyName);
+  return countyBelongsToRegion(countyName,activeScope);
 }
 
 function updateLabelVisibility(k=1){
@@ -2871,6 +2889,21 @@ async function init(){
       }
     }
     if(!towns.length) throw new Error("找不到鄉鎮市區資料");
+
+    // Validate that every county present in the loaded TopoJSON belongs to
+    // exactly one training region. This also catches 台/臺 naming variants.
+    const loadedCountyNames=[...new Set(towns.map(f=>f.properties.COUNTYNAME).filter(Boolean))];
+    const regionCoverage=loadedCountyNames.map(rawName=>{
+      const matches=REGION_DEFS
+        .filter(region=>region.id!=="ALL" && countyBelongsToRegion(rawName,region.id))
+        .map(region=>region.id);
+      return {rawName,normalized:normalizeCountyName(rawName),matches};
+    });
+    const invalidCoverage=regionCoverage.filter(item=>item.matches.length!==1);
+    if(invalidCoverage.length){
+      console.warn("Region coverage mismatch:",invalidCoverage);
+    }
+
     populateScopeSelect("ALL");buildStaticMap();refreshSide();updateSession();setMode("learn");updateExamButtons();
     document.querySelector("#loading").style.display="none";
     maybeStartTutorial();
