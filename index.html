@@ -125,14 +125,14 @@
     .layout.hide-right .right{display:none}
     .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;min-height:0}
     .sidebar{padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto;overscroll-behavior:contain}
-    .section-title{font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .section-title{font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
     .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .mode-btn{padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:800}
     .mode-btn.active{background:#111827;color:white;border-color:#111827}
     .control{display:flex;flex-direction:column;gap:6px}
-    label{font-size:12px;color:var(--muted);font-weight:800}
+    label{font-size:13px;color:var(--muted);font-weight:800}
     select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:#fff}
-    .option-select{padding:7px 9px;font-size:12px}
+    .option-select{padding:8px 10px;font-size:13px}
     .checkrow{display:flex;align-items:center;gap:8px;font-size:14px}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .stat{background:var(--soft);padding:11px;border-radius:12px}
@@ -1194,22 +1194,22 @@ function buildStaticMap(){
       const width=Math.max(1,bounds[1][0]-bounds[0][0]);
       const height=Math.max(1,bounds[1][1]-bounds[0][1]);
 
-      const fitByWidth=(width/(metrics.maxChars+0.9))*0.76;
-      const fitByHeight=(height/(metrics.lineCount*1.05))*0.50;
+      const fitByWidth=(width/(metrics.maxChars+0.9))*0.86;
+      const fitByHeight=(height/(metrics.lineCount*1.05))*0.58;
       const fitMap=Math.max(0.1,Math.min(fitByWidth,fitByHeight));
 
       this.setAttribute("data-fit-map",fitMap);
       this.setAttribute("data-fit-visible","0");
       this.setAttribute(
         "data-desired-screen",
-        adminNameLanguage==="en"?"12.0":"10.7"
+        adminNameLanguage==="en"?"14.6":"13.4"
       );
     })
     .attr("text-anchor","middle")
     .attr("dominant-baseline","middle")
     .attr("pointer-events","none")
     .attr("fill","#111827")
-    .attr("font-weight",625);
+    .attr("font-weight",700);
 
   labelNodes=labelG.selectAll("text").nodes();
 
@@ -1238,8 +1238,8 @@ function updateLabelMetadataForScope(){
     this.setAttribute(
       "data-desired-screen",
       adminNameLanguage==="en"
-        ? (scoped?"16.0":"12.0")
-        : (scoped?"14.0":"10.7")
+        ? (scoped?"18.2":"14.6")
+        : (scoped?"17.0":"13.4")
     );
     this.setAttribute(
       "font-weight",
@@ -1342,7 +1342,7 @@ let labelLayoutRAF=0;
 function labelScreenSize(node,k){
   const desiredBase=+node.getAttribute("data-desired-screen")||9;
   const fitMap=+node.getAttribute("data-fit-map")||0;
-  const zoomGrowth=Math.min(1.48,1+0.18*Math.log2(Math.max(1,k)));
+  const zoomGrowth=Math.min(1.58,1+0.22*Math.log2(Math.max(1,k)));
   return Math.min(desiredBase*zoomGrowth,fitMap*k);
 }
 
@@ -1903,8 +1903,8 @@ function refreshAdministrativeNameLanguage(){
         const width=Math.max(1,bounds[1][0]-bounds[0][0]);
         const height=Math.max(1,bounds[1][1]-bounds[0][1]);
 
-        const fitByWidth=(width/(metrics.maxChars+0.9))*0.76;
-        const fitByHeight=(height/(metrics.lineCount*1.05))*0.50;
+        const fitByWidth=(width/(metrics.maxChars+0.9))*0.86;
+        const fitByHeight=(height/(metrics.lineCount*1.05))*0.58;
 
         this.setAttribute(
           "data-fit-map",
