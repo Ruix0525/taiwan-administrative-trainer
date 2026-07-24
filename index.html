@@ -243,15 +243,20 @@
     .tutorial-blocker{
       position:absolute;
       inset:0;
-      background:rgba(4,8,15,.76);
-      backdrop-filter:blur(1px);
+      background:transparent;
+      backdrop-filter:none;
       cursor:default;
+      transition:background .18s ease;
+    }
+    .tutorial-blocker.full-dim{
+      background:rgba(4,8,15,.76);
     }
     .tutorial-spotlight{
       position:fixed;
       z-index:1;
       border:2px solid rgba(255,255,255,.96);
       border-radius:16px;
+      background:transparent;
       box-shadow:
         0 0 0 9999px rgba(4,8,15,.76),
         0 0 0 5px rgba(250,204,21,.20),
@@ -271,8 +276,10 @@
       z-index:3;
       width:min(390px,calc(100vw - 28px));
       max-height:min(78vh,660px);
-      overflow:auto;
+      overflow:hidden;
       padding:18px;
+      display:flex;
+      flex-direction:column;
       border:1px solid var(--line);
       border-radius:18px;
       background:var(--panel);
@@ -324,6 +331,9 @@
       color:var(--muted);
       font-size:13px;
       line-height:1.65;
+      overflow:auto;
+      min-height:0;
+      padding-right:2px;
     }
     .tutorial-body strong{color:var(--ink)}
     .tutorial-mini-grid{
@@ -380,17 +390,26 @@
     }
     .tutorial-actions{
       display:flex;
-      justify-content:space-between;
+      justify-content:flex-end;
       align-items:center;
-      gap:10px;
-      margin-top:16px;
+      gap:7px;
+      margin-top:auto;
       padding-top:13px;
       border-top:1px solid var(--line);
+      flex:0 0 auto;
+      background:var(--panel);
     }
     .tutorial-actions-right{
       display:flex;
       gap:7px;
-      margin-left:auto;
+      margin-left:0;
+    }
+    .tutorial-actions .tutorial-text-btn{
+      order:1;
+      padding:0 10px;
+    }
+    .tutorial-actions .tutorial-actions-right{
+      order:2;
     }
     .tutorial-text-btn,
     .tutorial-secondary-btn,
@@ -406,7 +425,6 @@
       border:0;
       background:transparent;
       color:var(--muted);
-      padding-left:0;
     }
     .tutorial-secondary-btn{
       border:1px solid var(--line);
@@ -423,6 +441,10 @@
       color:#422006;
     }
     .tutorial-primary-btn:hover{filter:brightness(.97)}
+    .tutorial-card.side-placement{
+      width:min(310px,calc(100vw - 28px));
+    }
+
     body.tutorial-active{
       overflow:hidden!important;
       user-select:none;
@@ -915,7 +937,7 @@
       .tutorial-title{font-size:19px}
       .tutorial-body{font-size:12.5px}
       .tutorial-mini-grid{grid-template-columns:1fr 1fr}
-      .tutorial-actions{align-items:flex-end}
+      .tutorial-actions{align-items:center}
       .tutorial-text-btn{font-size:11px}
 
       .mobile-settings-actions #mobileResetStatsBtn{grid-column:1/-1}
@@ -3087,11 +3109,13 @@ function tutorialPrepareMobilePanel(step){
 function tutorialPositionCard(target){
   const gap=14;
   const pad=10;
-  const cardRect=tutorialCard.getBoundingClientRect();
   const vw=window.innerWidth;
   const vh=window.innerHeight;
 
+  tutorialCard.classList.remove("side-placement");
+
   if(tutorialIsMobile()){
+    const cardRect=tutorialCard.getBoundingClientRect();
     const left=Math.max(pad,(vw-cardRect.width)/2);
     const top=Math.max(
       pad,
@@ -3103,39 +3127,74 @@ function tutorialPositionCard(target){
   }
 
   if(!target){
+    const cardRect=tutorialCard.getBoundingClientRect();
     tutorialCard.style.left=`${Math.max(pad,(vw-cardRect.width)/2)}px`;
     tutorialCard.style.top=`${Math.max(pad,(vh-cardRect.height)/2)}px`;
     return;
   }
 
   const r=target.getBoundingClientRect();
-  let left=r.right+gap;
-  let top=r.top;
 
-  if(left+cardRect.width>vw-pad){
+  // For a large highlighted target (especially the full map), keep the
+  // tutorial card outside the spotlight instead of covering the content.
+  const largeTarget=
+    r.width>vw*.48 ||
+    r.height>vh*.58;
+
+  if(largeTarget){
+    tutorialCard.classList.add("side-placement");
+  }
+
+  // Re-measure after side-placement width is applied.
+  const cardRect=tutorialCard.getBoundingClientRect();
+  const leftSpace=r.left-gap-pad;
+  const rightSpace=vw-r.right-gap-pad;
+
+  let left;
+  let top;
+
+  // Prefer the side with enough room. If neither side fully fits, use the
+  // larger gutter and clamp the compact card inside the viewport.
+  if(rightSpace>=cardRect.width || rightSpace>=leftSpace){
+    left=r.right+gap;
+  }else{
     left=r.left-cardRect.width-gap;
   }
-  if(left<pad){
-    left=Math.max(pad,Math.min(vw-cardRect.width-pad,r.left));
-    top=r.bottom+gap;
-    if(top+cardRect.height>vh-pad){
-      top=r.top-cardRect.height-gap;
+
+  left=Math.max(pad,Math.min(vw-cardRect.width-pad,left));
+
+  // Vertically center the card relative to the highlighted block where possible.
+  top=r.top+(r.height-cardRect.height)/2;
+  top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
+
+  // If the chosen card rectangle would overlap a large target because neither
+  // gutter is wide enough, explicitly anchor it to the larger screen edge.
+  if(largeTarget){
+    if(leftSpace>=rightSpace){
+      left=pad;
+    }else{
+      left=vw-cardRect.width-pad;
     }
+    top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
   }
 
-  top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
   tutorialCard.style.left=`${left}px`;
   tutorialCard.style.top=`${top}px`;
 }
 
 function tutorialPositionSpotlight(target){
+  const blocker=document.querySelector("#tutorialBlocker");
+
   if(!target){
     tutorialSpotlight.classList.remove("visible");
     tutorialSpotlight.style.width="0px";
     tutorialSpotlight.style.height="0px";
+    blocker?.classList.add("full-dim");
     tutorialPositionCard(null);
     return;
   }
+
+  blocker?.classList.remove("full-dim");
 
   const r=target.getBoundingClientRect();
   const expand=tutorialIsMobile()?7:8;
@@ -3244,6 +3303,7 @@ function finishTutorial({completed=true}={}){
   tutorialRoot.setAttribute("aria-hidden","true");
   document.body.classList.remove("tutorial-active");
   tutorialSpotlight.classList.remove("visible");
+  document.querySelector("#tutorialBlocker")?.classList.remove("full-dim");
 
   if(completed){
     try{localStorage.setItem(TUTORIAL_STORE_KEY,"1")}catch(_){}
