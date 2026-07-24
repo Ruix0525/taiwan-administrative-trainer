@@ -603,7 +603,7 @@
     }
     .tutorial-primary-btn:hover{filter:brightness(.97)}
     .tutorial-card.side-placement{
-      width:min(340px,calc(100vw - 28px));
+      width:min(320px,calc(100vw - 28px));
     }
 
     body.tutorial-active{
@@ -3546,9 +3546,8 @@ const TUTORIAL_STEPS=[
   {
     title:"歡迎來到台灣行政區訓練",
     body:`
-      這個工具用來熟悉台灣 <strong>368 個鄉鎮市區</strong> 的位置。
-      接下來會帶你快速看完每個主要功能。<br><br>
-      教學期間背景會被鎖住，請使用下方按鈕前進。
+      用來練習台灣 <strong>368 個鄉鎮市區</strong> 的位置。<br><br>
+      教學期間背景會鎖住，跟著下方按鈕看完即可。
     `
   },
   {
@@ -3557,12 +3556,11 @@ const TUTORIAL_STEPS=[
     mobileTarget:"#mobileModeBar",
     mobilePanel:"none",
     body:`
-      每個模式訓練的能力不同：
       <div class="tutorial-mini-grid">
-        <div class="tutorial-mini-card"><b>Learn</b><span>直接看地名，自由探索與記憶位置。</span></div>
-        <div class="tutorial-mini-card"><b>Find</b><span>看到地名後，在地圖上點出位置。</span></div>
-        <div class="tutorial-mini-card"><b>Reverse</b><span>看到位置後，從選項中選出地名。</span></div>
-        <div class="tutorial-mini-card"><b>Weak</b><span>只複習你曾經答錯過的行政區，弱項會優先出題。</span></div>
+        <div class="tutorial-mini-card"><b>Learn</b><span>直接看地名，先熟悉位置。</span></div>
+        <div class="tutorial-mini-card"><b>Find</b><span>看到地名後，在地圖上找位置。</span></div>
+        <div class="tutorial-mini-card"><b>Reverse</b><span>看到位置後，從選項選地名。</span></div>
+        <div class="tutorial-mini-card"><b>Weak</b><span>只練曾經答錯的地方。</span></div>
       </div>
     `
   },
@@ -3571,13 +3569,11 @@ const TUTORIAL_STEPS=[
     target:"#scopeControl",
     mobilePanel:"settings",
     body:`
-      範圍分成兩種，兩者一次只能選一種：
       <div class="tutorial-mini-grid">
-        <div class="tutorial-mini-card"><b>縣市</b><span>全台，或單獨選一個縣市集中練習。</span></div>
-        <div class="tutorial-mini-card"><b>區域</b><span>全台、北部、中部、南部、東部或離島。</span></div>
+        <div class="tutorial-mini-card"><b>縣市</b><span>選全台，或單練一個縣市。</span></div>
+        <div class="tutorial-mini-card"><b>區域</b><span>選北部、中部、南部、東部、離島或全台。</span></div>
       </div>
-      <br><strong>Beginner 不適用於單一縣市</strong>。開啟 Beginner 後會自動切到
-      <strong>區域</strong>，並停用「縣市」按鈕；你仍可在區域選單使用<strong>全台</strong>。
+      <br><strong>一次只能用一種範圍。</strong> Beginner 不適用於單一縣市，開啟後會自動切到 <strong>區域</strong>。
     `
   },
   {
@@ -3586,14 +3582,12 @@ const TUTORIAL_STEPS=[
     mobilePanel:"settings",
     body:`
       <div class="tutorial-mini-grid">
-        <div class="tutorial-mini-card"><b>Normal</b><span>答對保留綠色；答錯的正確位置保留紅色。</span></div>
-        <div class="tutorial-mini-card"><b>Beginner</b><span>會自動切到區域範圍；點到正確縣市就算答對，並用綠色顯示真正答案的鄉鎮市區。</span></div>
-        <div class="tutorial-mini-card"><b>Hard</b><span>答對後不保留綠色提示。</span></div>
-        <div class="tutorial-mini-card"><b>Extreme</b><span>答對、答錯後都不保留顏色提示。</span></div>
+        <div class="tutorial-mini-card"><b>Normal</b><span>答對留綠色，答錯留紅色。</span></div>
+        <div class="tutorial-mini-card"><b>Beginner</b><span>點到正確縣市就算對，並亮出真正答案。</span></div>
+        <div class="tutorial-mini-card"><b>Hard</b><span>答對後不保留綠色。</span></div>
+        <div class="tutorial-mini-card"><b>Extreme</b><span>答對、答錯都不留顏色。</span></div>
       </div>
-      <br>開啟 Beginner 時會自動切到 <strong>區域</strong>，並把「縣市」按鈕劃線停用；
-      桌面版將滑鼠移到被劃掉的「縣市」上、手機版點一下，即可查看原因；
-      可選北部、中部、南部、東部、離島或<strong>全台</strong>。再按一次已選取的難度，就會回到 Normal。
+      <br>Beginner 會自動切到 <strong>區域</strong>，並停用「縣市」。再按一次目前難度，可回到 Normal。
     `
   },
   {
@@ -3601,13 +3595,11 @@ const TUTORIAL_STEPS=[
     target:".map-panel",
     mobilePanel:"none",
     body:`
-      可以拖曳、縮放地圖，也可以使用右下角的 <strong>＋ / −</strong>。
-      桌面版還有專注地圖按鈕，可一鍵收起左右面板。<br>
-      快捷鍵：按 <strong>M</strong> 可切換專注地圖；放大後按
-      <strong>Esc</strong> 可立即縮回。
-      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#8ee5a9"></span><span><strong>綠色</strong>：答對／已保留的正確區域</span></div>
-      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ff6b6b"></span><span><strong>紅色</strong>：答錯時應該點到的正確區域</span></div>
-      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ffd875"></span><span><strong>黃色</strong>：目前選取或提示中的區域</span></div>
+      可拖曳、縮放，也可用右下角 <strong>＋ / −</strong>。<br>
+      專注地圖：<strong>M</strong> 切換，<strong>Esc</strong> 縮回。
+      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#8ee5a9"></span><span><strong>綠色</strong>：正確區域</span></div>
+      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ff6b6b"></span><span><strong>紅色</strong>：答錯時的正解</span></div>
+      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ffd875"></span><span><strong>黃色</strong>：目前選取 / 提示區域</span></div>
     `
   },
   {
@@ -3616,9 +3608,8 @@ const TUTORIAL_STEPS=[
     mobileTarget:"#progressDrawer",
     mobilePanel:"progress",
     body:`
-      一個行政區至少 <strong>答對 3 次</strong>，而且正確率達到
-      <strong>80%</strong>，才會被計為 Mastered。<br><br>
-      Weak Areas 會列出目前最需要加強的地方，方便你回到 Weak 模式重練。
+      同一行政區至少 <strong>答對 3 次</strong>，且正確率達到 <strong>80%</strong>，才會列為 Mastered。<br><br>
+      Weak Areas 會列出目前最需要加強的地方。
     `
   },
   {
@@ -3627,9 +3618,8 @@ const TUTORIAL_STEPS=[
     mobileTarget:".mobile-settings-actions",
     mobilePanel:"settings",
     body:`
-      你可以切換行政區 <strong>中文 / 英文名稱</strong>、日夜模式、邊界層級、
-      重設地圖與清除進度。<br><br>
-      <strong>「新手教學」按鈕會一直保留</strong>，之後隨時都能從頭重播這份教學。
+      這裡可切換 <strong>中文 / 英文</strong>、日夜模式、邊界層級，也能重設地圖與清除進度。<br><br>
+      <strong>新手教學</strong> 之後也能隨時重播。
     `
   },
   {
@@ -3638,12 +3628,9 @@ const TUTORIAL_STEPS=[
     mobileTarget:"#mobileTutorialBtn",
     mobilePanel:"settings",
     body:`
-      建議第一次使用先從 <strong>Learn</strong> 看熟輪廓，
-      再用 <strong>Beginner + 區域 + Find</strong> 熟悉各區縣市，接著挑戰
-      <strong>Beginner + 全台</strong>。最後回到 Normal、Hard 或 Extreme
-      挑戰精確的鄉鎮市區位置。<br><br>
-      完成後背景就會解鎖，可以開始訓練。之後隨時都能按
-      <strong>「新手教學」</strong>重新播放。
+      建議順序：<br>
+      <strong>Learn → Beginner + 區域 + Find → Beginner + 全台 → Normal / Hard / Extreme</strong><br><br>
+      看完後即可開始訓練；之後也能用 <strong>新手教學</strong> 重新播放。
     `
   }
 ];
