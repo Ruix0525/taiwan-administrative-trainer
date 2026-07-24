@@ -1169,6 +1169,8 @@
       .map-panel.learn-mode .question{font-size:21px}
       .difficulty-switch{grid-template-columns:1fr}
       .difficulty-pill{min-height:54px}
+      .scope-hint{font-size:12px;line-height:1.5;margin-top:8px;padding:9px 11px;border-radius:12px;background:rgba(255,193,7,.12);color:#8a6400;border:1px solid rgba(255,193,7,.28)}
+      body.dark .scope-hint{background:rgba(255,193,7,.10);color:#ffd76a;border-color:rgba(255,193,7,.22)}
     }
 
     @media (max-width:950px) and (orientation:landscape){
@@ -1247,6 +1249,7 @@
           <button type="button" class="scope-pill" id="scopeRegionBtn" data-scope-mode="region">區域</button>
         </div>
         <select id="countyFilter"><option value="ALL">全台</option></select>
+        <div class="scope-hint" id="scopeHint" style="display:none"></div>
       </div>
 
       <div>
@@ -2773,6 +2776,7 @@ function setScopeMode(nextMode,{selectedValue}={}){
 
   scopeMode=nextMode;
   updateScopeModeUI();
+  updateScopeHint();
 
   const targetValue=selectedValue ?? (nextMode==="county" ? previousCountySelection : previousRegionSelection);
   populateScopeSelect(targetValue);
@@ -2994,6 +2998,19 @@ const hardModeBtn=document.querySelector("#hardModeBtn");
 const extremeModeBtn=document.querySelector("#extremeModeBtn");
 const scopeCountyBtn=document.querySelector("#scopeCountyBtn");
 const scopeRegionBtn=document.querySelector("#scopeRegionBtn");
+const scopeHint=document.querySelector("#scopeHint");
+
+function updateScopeHint(){
+  if(!scopeHint)return;
+  const active=!!beginnerModeInput?.checked && scopeMode==="county";
+  if(active){
+    scopeHint.style.display="block";
+    scopeHint.textContent="Beginner 模式下，縣市範圍僅支援「全台」；若想縮小範圍，請改選「區域」。";
+  }else{
+    scopeHint.style.display="none";
+    scopeHint.textContent="";
+  }
+}
 
 function refreshDifficultyUI(){
   beginnerModeBtn?.classList.toggle("active",!!beginnerModeInput?.checked);
@@ -3027,6 +3044,7 @@ function setDifficultyMode(nextMode){
   }
 
   refreshDifficultyUI();
+  updateScopeHint();
 
   let scopeMessage="";
   if(beginnerModeInput.checked){
@@ -3050,8 +3068,12 @@ beginnerModeBtn.onclick=()=>setDifficultyMode("beginner");
 hardModeBtn.onclick=()=>setDifficultyMode("hard");
 extremeModeBtn.onclick=()=>setDifficultyMode("extreme");
 scopeCountyBtn.onclick=()=>{
-  setScopeMode("county",{selectedValue:beginnerModeInput.checked?"ALL":previousCountySelection});
-  handleScopeChange({resetView:true});
+  const beginnerLock=beginnerModeInput.checked;
+  setScopeMode("county",{selectedValue:beginnerLock?"ALL":previousCountySelection});
+  handleScopeChange({
+    resetView:true,
+    message:beginnerLock?"Beginner 模式下，縣市範圍只能使用「全台」；若想縮小範圍，請改選「區域」。":""
+  });
 };
 scopeRegionBtn.onclick=()=>{
   setScopeMode("region",{selectedValue:previousRegionSelection});
@@ -3059,6 +3081,7 @@ scopeRegionBtn.onclick=()=>{
 };
 refreshDifficultyUI();
 updateScopeModeUI();
+updateScopeHint();
 
 document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
   setMode(b.dataset.mode);
@@ -3067,8 +3090,18 @@ document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
 document.querySelector("#startExamBtn").onclick=startExam;
 document.querySelector("#stopExamBtn").onclick=()=>stopExam({restore:true});
 document.querySelector("#countyFilter").onchange=()=>{
+  const select=document.querySelector("#countyFilter");
+  if(beginnerModeInput.checked && scopeMode==="county" && select.value!=="ALL"){
+    select.value="ALL";
+    handleScopeChange({
+      resetView:true,
+      message:"Beginner 模式下，縣市範圍只能使用「全台」；若想縮小範圍，請改選「區域」。"
+    });
+    return;
+  }
   if(scopeMode==="county")previousCountySelection=currentScopeName();
   else previousRegionSelection=currentScopeName();
+  updateScopeHint();
   handleScopeChange({resetView:true});
 };
 document.querySelector("#borderMode").onchange=()=>applyMapState({resetView:false});
