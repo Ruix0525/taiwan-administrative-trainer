@@ -249,7 +249,11 @@
       opacity:.58;
       overflow:hidden;
       box-shadow:none;
-      pointer-events:none;
+      pointer-events:auto;
+    }
+    .scope-pill.scope-disabled:hover{
+      background:var(--button);
+      color:var(--muted);
     }
     .scope-pill.scope-disabled::after{
       content:"";
