@@ -815,13 +815,38 @@
   /* SVG labels */
   html[data-theme="dark"] .town-label,
   html[data-theme="dark"] .map-label,
-  html[data-theme="dark"] text.label{
+  html[data-theme="dark"] text.label,
+  html[data-theme="dark"] .labels text{
     fill:#f8fafc!important;
-    stroke:rgba(10,15,25,.88)!important;
+    color:#f8fafc!important;
+    stroke:rgba(7,12,20,.92)!important;
+    stroke-width:2px!important;
+    paint-order:stroke fill!important;
+  }
+
+  /* The dynamically-created Learn-mode township labels live inside
+     <g class="labels"> and previously had no individual class, so the
+     inline SVG fill stayed dark. This selector explicitly fixes them. */
+  html[data-theme="dark"] .labels text tspan{
+    fill:#f8fafc!important;
   }
 
   html[data-theme="dark"] svg text{
     color:#f8fafc;
+  }
+
+  html[data-theme="light"] .labels text,
+  html:not([data-theme="dark"]) .labels text{
+    fill:#111827!important;
+    color:#111827!important;
+    stroke:rgba(255,255,255,.90)!important;
+    stroke-width:2px!important;
+    paint-order:stroke fill!important;
+  }
+
+  html[data-theme="light"] .labels text tspan,
+  html:not([data-theme="dark"]) .labels text tspan{
+    fill:#111827!important;
   }
 
   /* Progress / weak-area surfaces */
