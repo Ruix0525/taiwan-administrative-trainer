@@ -2411,13 +2411,14 @@ function handleTownClick(d,event){
   if(ok){
     answered=true;session.correct++;session.times.push(sec);saveStat(current,true,sec);
 
-    // Beginner mode tests county recognition rather than exact township position.
-    // Keep the exact small region the user clicked green, as requested.
-    correctHistory.add(sKey(beginner ? d : current));
-    flashFeature(d,"correct");
+    // Beginner mode scores by county, but teaches the exact township:
+    // even when the user clicks another township in the correct county,
+    // highlight and persist the actual answer region in green.
+    correctHistory.add(sKey(current));
+    flashFeature(beginner ? current : d,"correct");
 
     document.querySelector("#feedback").textContent=beginner
-      ? `✅ 縣市正確：${adminCountyName(current)} · ${sec.toFixed(1)}s`
+      ? `✅ 縣市正確 · 正解：${examAdministrativeName(current)} · ${sec.toFixed(1)}s`
       : `✅ ${examAdministrativeName(current)} · ${sec.toFixed(1)}s`;
 
     updateSession();
