@@ -6,27 +6,46 @@
   <meta name="author" content="Ru1zly" />
   <meta name="original-author" content="Ru1zly" />
   <meta name="application-name" content="台灣行政區訓練" />
+  <meta name="theme-color" content="#f4f5f7" />
   <!-- Original Author: Ru1zly | Build: TW-ADMIN-TRAINER-RU1ZLY-STABLE-001 | Signature: EF20BFAAD67B08C465626A7C0AA5111BC9F0785D7A9184D5991F43FE590151FF -->
   <title>台灣行政區訓練</title>
+  <script>
+    (() => {
+      const key = "tw368trainer_theme_v1";
+      let theme = null;
+      try { theme = localStorage.getItem(key); } catch (_) {}
+      if (theme !== "light" && theme !== "dark") {
+        theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
-  <script>
-(function(){
-  try{
-    const key="taiwan-admin-trainer-theme";
-    const saved=localStorage.getItem(key);
-    const theme=(saved==="dark"||saved==="light")
-      ? saved
-      : (window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
-    document.documentElement.dataset.theme=theme;
-  }catch(_){}
-})();
-</script>
-<style>
+  <style>
     :root{
       --bg:#f4f5f7;--panel:#ffffff;--ink:#15181d;--muted:#6b7280;--line:#d9dde4;
       --accent:#111827;--good:#1f9d55;--bad:#dc2626;--warn:#d97706;--soft:#eef1f5;
       --shadow:0 10px 28px rgba(15,23,42,.08);
+      --button:#ffffff;--button-hover:#f8fafc;--active:#111827;
+      --map-top:#f8fafc;--map-bottom:#eef2f7;--town:#ffffff;--town-hover:#e8edf4;
+      --town-stroke:#98a2b3;--county-stroke:#111827;--map-label:#111827;
+      --quiz:rgba(255,255,255,.97);--topbar-glass:rgba(248,250,252,.96);
+      --nav-glass:rgba(255,255,255,.95);--loading:#f5f7fa;--drawer:#ffffff;
+      --progress-track:#eceff3;--success-soft:#dcfce7;--error-soft:#fee2e2;
+      color-scheme:light;
+    }
+    html[data-theme="dark"]{
+      --bg:#070b12;--panel:#0f1623;--ink:#e7edf6;--muted:#93a1b5;--line:#263244;
+      --accent:#d7e3f4;--good:#4ade80;--bad:#fb7185;--warn:#fbbf24;--soft:#172131;
+      --shadow:0 14px 34px rgba(0,0,0,.38);
+      --button:#141e2d;--button-hover:#1b293b;--active:#d7e3f4;
+      --map-top:#0c1420;--map-bottom:#080d15;--town:#172334;--town-hover:#24354b;
+      --town-stroke:#5e718b;--county-stroke:#b8c7da;--map-label:#f4f7fb;
+      --quiz:rgba(11,17,27,.96);--topbar-glass:rgba(7,12,20,.94);
+      --nav-glass:rgba(13,20,31,.96);--loading:#0b121d;--drawer:#0f1623;
+      --progress-track:#253246;--success-soft:#153a29;--error-soft:#45202a;
+      color-scheme:dark;
     }
     *{box-sizing:border-box}
     html,body{height:100%;overflow:hidden}
@@ -36,10 +55,26 @@
     .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:12px;flex:0 0 auto}
     .brand{font-weight:850;font-size:24px;letter-spacing:-.5px}
     .brand-row{display:flex;align-items:baseline;gap:8px}
-    .author-credit{color:#98a2b3;font-size:11px;font-weight:650;letter-spacing:.02em}
+    .author-credit{color:var(--muted);font-size:11px;font-weight:650;letter-spacing:.02em}
+    .author-stack{
+      display:inline-flex;
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:center;
+      gap:1px;
+      line-height:1.05;
+    }
+    .theme-credit{
+      color:var(--muted);
+      font-size:8.5px;
+      font-weight:600;
+      letter-spacing:.01em;
+      opacity:.78;
+      white-space:nowrap;
+    }
     .mobile-header-actions,.mobile-drawer-head,.mobile-settings-actions,
     .mobile-overlay,.mobile-bottom-nav,.mobile-exam-action{display:none}
-    .danger-soft{color:#b42318;border-color:#fecdca;background:#fff}
+    .danger-soft{color:#b42318;border-color:#fecdca;background:var(--button)}
     .difficulty-block{
       display:flex;
       flex-direction:column;
@@ -49,7 +84,7 @@
     .difficulty-label{
       font-size:11px;
       font-weight:800;
-      color:#667085;
+      color:var(--muted);
       letter-spacing:.08em;
       text-transform:uppercase;
     }
@@ -58,9 +93,9 @@
       grid-template-columns:1fr 1fr;
       gap:7px;
       padding:4px;
-      border:1px solid #dfe4ea;
+      border:1px solid var(--line);
       border-radius:15px;
-      background:#f4f6f8;
+      background:var(--soft);
     }
     .difficulty-pill{
       appearance:none;
@@ -70,7 +105,7 @@
       min-height:54px;
       padding:8px 9px;
       background:transparent;
-      color:#667085;
+      color:var(--muted);
       display:flex;
       flex-direction:column;
       align-items:flex-start;
@@ -86,14 +121,14 @@
         transform .12s ease;
     }
     .difficulty-pill:hover{
-      background:#fff;
-      color:#344054;
+      background:var(--button-hover);
+      color:var(--ink);
     }
     .difficulty-pill:active{transform:scale(.985)}
     .difficulty-pill.active{
-      background:#fff;
-      color:#101828;
-      border-color:#d0d5dd;
+      background:var(--button);
+      color:var(--ink);
+      border-color:var(--line);
       box-shadow:0 2px 7px rgba(16,24,40,.08);
     }
     .difficulty-pill[data-difficulty="hard"].active{
@@ -122,7 +157,7 @@
 
     .sub{color:var(--muted);font-size:13px;margin-top:2px}
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:12px;cursor:pointer;font-weight:700}
+    .btn{border:1px solid var(--line);background:var(--button);color:var(--ink);padding:10px 13px;border-radius:12px;cursor:pointer;font-weight:700}
     .btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.06)}
     .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
     .btn.danger{background:#fff1f2;color:#b91c1c;border-color:#fecdd3}
@@ -139,39 +174,40 @@
     .sidebar{padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto;overscroll-behavior:contain}
     .section-title{font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
     .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .mode-btn{padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:800}
-    .mode-btn.active{background:#111827;color:white;border-color:#111827}
+    .mode-btn{padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:var(--button);color:var(--ink);cursor:pointer;font-weight:800}
+    .mode-btn.active{background:var(--active);color:var(--bg);border-color:var(--active)}
     .control{display:flex;flex-direction:column;gap:6px}
     label{font-size:13px;color:var(--muted);font-weight:800}
-    select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:#fff}
+    select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:var(--button);color:var(--ink)}
     .option-select{padding:8px 10px;font-size:13px}
     .checkrow{display:flex;align-items:center;gap:8px;font-size:14px}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .stat{background:var(--soft);padding:11px;border-radius:12px}
     .stat b{display:block;font-size:20px}
     .stat span{font-size:11px;color:var(--muted)}
-    .map-panel{position:relative;height:100%;min-height:0;background:linear-gradient(#f8fafc,#eef2f7);display:flex;flex-direction:column;overscroll-behavior:contain}
+    .map-panel{position:relative;height:100%;min-height:0;background:linear-gradient(var(--map-top),var(--map-bottom));display:flex;flex-direction:column;overscroll-behavior:contain}
     #map{width:100%;height:100%;flex:1 1 auto;min-height:0;display:block;touch-action:none;overscroll-behavior:contain;user-select:none}
-    .town{fill:#ffffff;stroke:#98a2b3;stroke-width:.45;vector-effect:non-scaling-stroke;cursor:pointer;shape-rendering:geometricPrecision}
+    .town{fill:var(--town);stroke:var(--town-stroke);stroke-width:.45;vector-effect:non-scaling-stroke;cursor:pointer;shape-rendering:geometricPrecision}
     .labels text{
       paint-order:normal;
       stroke:none!important;
       filter:none!important;
       text-rendering:geometricPrecision;
+      fill:var(--map-label)!important;
     }
     .labels tspan{dominant-baseline:middle}
     .is-zooming .town,.is-zooming .county-border{shape-rendering:optimizeSpeed}
-    .is-zooming .town:hover{fill:#fff}
+    .is-zooming .town:hover{fill:var(--town)}
     .is-zooming .labels text{text-rendering:optimizeSpeed}
     .map-panel{contain:layout paint;content-visibility:auto}
-    .town:hover{fill:#e8edf4}
+    .town:hover{fill:var(--town-hover)}
     .town.correct{fill:#8ee5a9!important}
     .town.wrong{fill:#ff9b9b!important}
     .town.target{fill:#ffd875!important}
     .town.missed{fill:#ff6b6b!important}
     .town.learned{fill:#d9f6e2}
-    .county-border{fill:none;stroke:#111827;stroke-width:1.25;vector-effect:non-scaling-stroke;pointer-events:none}
-    .quiz-card{position:relative;z-index:3;background:rgba(255,255,255,.97);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 12px 8px;text-align:center;box-shadow:none;backdrop-filter:blur(8px);flex:0 0 auto}
+    .county-border{fill:none;stroke:var(--county-stroke);stroke-width:1.25;vector-effect:non-scaling-stroke;pointer-events:none}
+    .quiz-card{position:relative;z-index:3;background:var(--quiz);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 12px 8px;text-align:center;box-shadow:none;backdrop-filter:blur(8px);flex:0 0 auto}
     .quiz-label{font-size:9px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.05em}
     .question{font-size:20px;font-weight:900;margin-top:1px;line-height:1.15}
     .hint{font-size:11px;color:var(--muted);margin-top:3px}
@@ -212,22 +248,38 @@
 
     .map-panel.reverse-mode .quiz-card{padding-bottom:7px}
     .zoom{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:4}
-    .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:white;font-weight:900;cursor:pointer}
+    .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--button);color:var(--ink);font-weight:900;cursor:pointer}
     .right{padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto;overscroll-behavior:contain}
     .card{border:1px solid var(--line);border-radius:14px;padding:13px}
     .big{font-size:22px;font-weight:900}
     .muted{color:var(--muted)}
-    .progress{height:10px;background:#eceff3;border-radius:999px;overflow:hidden}
-    .progress > div{height:100%;background:#111827;width:0%}
+    .progress{height:10px;background:var(--progress-track);border-radius:999px;overflow:hidden}
+    .progress > div{height:100%;background:var(--active);width:0%}
     .weak-list{display:flex;flex-direction:column;gap:7px;max-height:300px;overflow:auto}
     .weak-item{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;background:var(--soft);border-radius:10px;font-size:13px}
     .pill{padding:3px 7px;border-radius:999px;font-weight:800;font-size:11px}
     .red{background:#fee2e2;color:#991b1b}.yellow{background:#fef3c7;color:#92400e}.green{background:#dcfce7;color:#166534}
     .answers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:980px;margin-left:auto!important;margin-right:auto!important}
-    .answer-btn{border:1px solid var(--line);background:white;border-radius:9px;padding:7px 8px;text-align:center;cursor:pointer;font-weight:750;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .answer-btn{border:1px solid var(--line);background:var(--button);color:var(--ink);border-radius:9px;padding:7px 8px;text-align:center;cursor:pointer;font-weight:750;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .answer-btn:hover{background:var(--soft)}
-    .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted);z-index:10;background:#f5f7fa}
-    .panel-toggle.active{background:#111827;color:white;border-color:#111827}
+    .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted);z-index:10;background:var(--loading)}
+    .panel-toggle.active{background:var(--active);color:var(--bg);border-color:var(--active)}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+    .theme-toggle-icon{font-size:15px;line-height:1}
+    body,.panel,.map-panel,.quiz-card,.btn,.mode-btn,select,.zoom button,.stat,.weak-item,.loading{
+      transition:background-color .2s ease,border-color .2s ease,color .2s ease,fill .2s ease,stroke .2s ease;
+    }
+    html[data-theme="dark"] .danger-soft{color:#fda4af;border-color:#713142}
+    html[data-theme="dark"] .btn.danger{background:#321923;color:#fda4af;border-color:#713142}
+    html[data-theme="dark"] .btn.primary{color:#07101a}
+    html[data-theme="dark"] .town.correct{fill:#247a50!important}
+    html[data-theme="dark"] .town.wrong{fill:#923a49!important}
+    html[data-theme="dark"] .town.target{fill:#9b6b20!important}
+    html[data-theme="dark"] .town.missed{fill:#b43b50!important}
+    html[data-theme="dark"] .town.learned{fill:#1c4936}
+    html[data-theme="dark"] .red{background:#45202a;color:#fecdd3}
+    html[data-theme="dark"] .yellow{background:#433518;color:#fde68a}
+    html[data-theme="dark"] .green{background:#153a29;color:#bbf7d0}
     @media (max-width:1100px) and (min-width:761px){
       .layout{grid-template-columns:250px minmax(0,1fr) 270px}
       .layout.hide-left{grid-template-columns:0 minmax(0,1fr) 270px}
@@ -243,7 +295,7 @@
         height:100dvh;
         overflow:hidden;
         overscroll-behavior:none;
-        background:#eef2f7;
+        background:var(--map-bottom);
       }
       body{position:fixed;inset:0}
 
@@ -262,7 +314,7 @@
         min-height:var(--mobile-header-h);
         margin:0;
         padding:8px 10px 7px 12px;
-        background:rgba(248,250,252,.96);
+        background:var(--topbar-glass);
         backdrop-filter:blur(14px);
         border-bottom:1px solid var(--line);
         align-items:center;
@@ -273,6 +325,7 @@
       .brand-row{gap:5px;align-items:baseline}
       .brand{font-size:19px;white-space:nowrap;letter-spacing:-.35px}
       .author-credit{font-size:10px;white-space:nowrap}
+      .theme-credit{font-size:7.5px}
       .sub{display:none}
       .top-actions{display:none!important}
 
@@ -284,8 +337,8 @@
       }
       .mobile-icon-btn,.mobile-progress-btn,.mobile-close-btn{
         border:1px solid var(--line);
-        background:#fff;
-        color:#111827;
+        background:var(--button);
+        color:var(--ink);
         box-shadow:0 1px 2px rgba(15,23,42,.04);
       }
       .mobile-icon-btn{
@@ -324,7 +377,7 @@
         border:0;
         border-radius:0;
         box-shadow:none;
-        background:linear-gradient(#f8fafc,#eef2f7);
+        background:linear-gradient(var(--map-top),var(--map-bottom));
         display:flex!important;
       }
 
@@ -343,7 +396,7 @@
         border-right:0;
         padding:7px 10px;
         min-height:54px;
-        background:rgba(255,255,255,.95);
+        background:var(--quiz);
         backdrop-filter:blur(10px);
         z-index:3;
       }
@@ -407,7 +460,7 @@
         transform:translateX(-105%);
         transition:transform .22s cubic-bezier(.2,.8,.2,1);
         box-shadow:0 18px 55px rgba(15,23,42,.22);
-        background:#fff;
+        background:var(--drawer);
       }
       .sidebar.mobile-open{transform:translateX(0)}
       .sidebar-mode-section{display:none}
@@ -432,6 +485,7 @@
         gap:8px;
       }
       .mobile-settings-actions #mobileResetStatsBtn{grid-column:1/-1}
+      .mobile-settings-actions #mobileThemeBtn{grid-column:1/-1}
       .sidebar .control select,.sidebar .option-select{font-size:15px;min-height:46px}
       .sidebar .checkrow{font-size:14px}
       .sidebar .section-title{font-size:12px}
@@ -469,10 +523,10 @@
         transform:translateY(105%);
         transition:transform .23s cubic-bezier(.2,.8,.2,1);
         box-shadow:0 -16px 55px rgba(15,23,42,.2);
-        background:#fff;
+        background:var(--drawer);
       }
       .right.mobile-open{transform:translateY(0)}
-      .right .mobile-drawer-head{position:sticky;top:-14px;background:#fff;z-index:2;padding-top:4px}
+      .right .mobile-drawer-head{position:sticky;top:-14px;background:var(--drawer);z-index:2;padding-top:4px}
 
       .mobile-overlay{
         position:fixed;
@@ -498,9 +552,9 @@
         grid-template-columns:repeat(4,1fr);
         gap:5px;
         padding:6px;
-        border:1px solid rgba(208,213,221,.9);
+        border:1px solid var(--line);
         border-radius:18px;
-        background:rgba(255,255,255,.95);
+        background:var(--nav-glass);
         backdrop-filter:blur(16px);
         box-shadow:0 10px 30px rgba(15,23,42,.14);
       }
@@ -533,9 +587,16 @@
         box-shadow:0 10px 25px rgba(15,23,42,.22);
       }
       .mobile-exam-btn.stop{
-        background:#fff;
+        background:var(--button);
         color:#b42318;
         border:1px solid #fda29b;
+      }
+
+      .mobile-theme-btn{
+        width:42px;
+        min-width:42px;
+        padding:0;
+        font-size:18px;
       }
 
       /* During an active exam, make the map the focus. */
@@ -564,320 +625,7 @@
       .mobile-bottom-nav{left:50%;right:auto;width:min(520px,68vw);transform:translateX(-50%)}
       .mobile-exam-action{left:50%;right:auto;width:min(500px,64vw);transform:translateX(-50%)}
     }
-  
-  /* =========================================================
-     THEME SYSTEM
-     ========================================================= */
-  :root{
-    --theme-bg:#f4f6f8;
-    --theme-surface:#ffffff;
-    --theme-surface-2:#f8fafc;
-    --theme-surface-3:#eef2f6;
-    --theme-text:#101828;
-    --theme-muted:#667085;
-    --theme-line:#d0d5dd;
-    --theme-line-soft:#e4e7ec;
-    --theme-map:#f8fafc;
-    --theme-map-alt:#eef2f7;
-    --theme-town:#ffffff;
-    --theme-town-hover:#eef4fb;
-    --theme-border:#182230;
-    --theme-border-soft:#cbd5e1;
-    --theme-shadow:rgba(15,23,42,.08);
-  }
-
-  html[data-theme="dark"]{
-    color-scheme:dark;
-    --theme-bg:#0b111b;
-    --theme-surface:#111827;
-    --theme-surface-2:#161f2e;
-    --theme-surface-3:#1d2939;
-    --theme-text:#f8fafc;
-    --theme-muted:#a7b0c0;
-    --theme-line:#344054;
-    --theme-line-soft:#273449;
-    --theme-map:#101827;
-    --theme-map-alt:#0d1522;
-    --theme-town:#172235;
-    --theme-town-hover:#23334c;
-    --theme-border:#d8e0ea;
-    --theme-border-soft:#526078;
-    --theme-shadow:rgba(0,0,0,.34);
-  }
-
-  body{
-    background:var(--theme-bg)!important;
-    color:var(--theme-text);
-    transition:background .2s ease,color .2s ease;
-  }
-
-  .app,
-  .layout{
-    background:var(--theme-bg);
-  }
-
-  .topbar{
-    background:var(--theme-bg)!important;
-    border-color:var(--theme-line)!important;
-  }
-
-  .brand,
-  .question,
-  .mobile-drawer-title,
-  .card .big,
-  .stat .value,
-  #currentName,
-  #masteryCount{
-    color:var(--theme-text)!important;
-  }
-
-  .sub,
-  .author-credit,
-  .section-title,
-  .quiz-label,
-  .hint,
-  .feedback,
-  .mobile-drawer-sub,
-  .stat .label,
-  .difficulty-label,
-  label,
-  .muted{
-    color:var(--theme-muted)!important;
-  }
-
-  .panel,
-  .sidebar,
-  .right,
-  .quiz-card,
-  .card,
-  .stat,
-  .mobile-bottom-nav,
-  .mobile-drawer-head,
-  .mobile-settings-actions .btn{
-    background:var(--theme-surface)!important;
-    border-color:var(--theme-line)!important;
-    color:var(--theme-text)!important;
-  }
-
-  .map-panel{
-    background:linear-gradient(var(--theme-map),var(--theme-map-alt))!important;
-    border-color:var(--theme-line)!important;
-  }
-
-  #map{
-    background:linear-gradient(var(--theme-map),var(--theme-map-alt))!important;
-  }
-
-  button,
-  .btn,
-  select,
-  .option-select,
-  .answer-btn,
-  .mobile-icon-btn,
-  .mobile-progress-btn,
-  .mobile-close-btn,
-  .zoom button{
-    border-color:var(--theme-line)!important;
-  }
-
-  select,
-  .option-select{
-    background:var(--theme-surface)!important;
-    color:var(--theme-text)!important;
-  }
-
-  .btn,
-  .answer-btn,
-  .mobile-icon-btn,
-  .mobile-progress-btn,
-  .mobile-close-btn,
-  .zoom button{
-    background:var(--theme-surface)!important;
-    color:var(--theme-text)!important;
-  }
-
-  .btn:hover,
-  .answer-btn:hover,
-  .zoom button:hover{
-    background:var(--theme-surface-2)!important;
-  }
-
-  .mode-btn{
-    background:var(--theme-surface)!important;
-    border-color:var(--theme-line)!important;
-    color:var(--theme-text)!important;
-  }
-
-  .mode-btn.active{
-    background:#101828!important;
-    color:#fff!important;
-    border-color:#101828!important;
-  }
-
-  html[data-theme="dark"] .mode-btn.active{
-    background:#e5e7eb!important;
-    color:#111827!important;
-    border-color:#e5e7eb!important;
-  }
-
-  .difficulty-switch{
-    background:var(--theme-surface-3)!important;
-    border-color:var(--theme-line)!important;
-  }
-
-  .difficulty-pill{
-    color:var(--theme-muted)!important;
-  }
-
-  .difficulty-pill:hover{
-    background:var(--theme-surface-2)!important;
-    color:var(--theme-text)!important;
-  }
-
-  .difficulty-pill.active{
-    color:#fff!important;
-  }
-
-  .difficulty-pill[data-difficulty="hard"].active{
-    background:#101828!important;
-    border-color:#101828!important;
-    color:#fff!important;
-  }
-
-  html[data-theme="dark"] .difficulty-pill[data-difficulty="hard"].active{
-    background:#475467!important;
-    border-color:#667085!important;
-  }
-
-  .difficulty-pill[data-difficulty="extreme"].active{
-    background:#7f1d1d!important;
-    border-color:#991b1b!important;
-    color:#fff!important;
-  }
-
-  .theme-toggle-btn{
-    min-height:44px;
-    padding:0 14px;
-    border:1px solid var(--theme-line);
-    border-radius:13px;
-    background:var(--theme-surface);
-    color:var(--theme-text);
-    font-weight:800;
-    font-size:13px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    cursor:pointer;
-    box-shadow:0 1px 2px var(--theme-shadow);
-    transition:background .16s ease,border-color .16s ease,transform .12s ease;
-  }
-
-  .theme-toggle-btn:hover{
-    background:var(--theme-surface-2);
-  }
-
-  .theme-toggle-btn:active{transform:scale(.98)}
-  .theme-icon{font-size:17px;line-height:1}
-
-  .theme-mobile-btn{
-    display:flex!important;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-  }
-
-  /* Map polygons and administrative boundaries */
-  html[data-theme="dark"] .town{
-    fill:var(--theme-town)!important;
-    stroke:var(--theme-border-soft)!important;
-  }
-
-  html[data-theme="dark"] .town:hover{
-    fill:var(--theme-town-hover)!important;
-  }
-
-  html[data-theme="dark"] .county-border,
-  html[data-theme="dark"] .county-outline{
-    stroke:var(--theme-border)!important;
-  }
-
-  html[data-theme="dark"] .town.correct{fill:#27724b!important}
-  html[data-theme="dark"] .town.wrong{fill:#9f3a45!important}
-  html[data-theme="dark"] .town.target{fill:#a87817!important}
-  html[data-theme="dark"] .town.missed{fill:#b8404b!important}
-
-  /* Preserve selected / Learn highlight readability in dark mode */
-  html[data-theme="dark"] .town.selected{
-    fill:#a87817!important;
-  }
-
-  /* SVG labels */
-  html[data-theme="dark"] .town-label,
-  html[data-theme="dark"] .map-label,
-  html[data-theme="dark"] text.label,
-  html[data-theme="dark"] .labels text{
-    fill:#f8fafc!important;
-    color:#f8fafc!important;
-    stroke:rgba(7,12,20,.92)!important;
-    stroke-width:2px!important;
-    paint-order:stroke fill!important;
-  }
-
-  /* The dynamically-created Learn-mode township labels live inside
-     <g class="labels"> and previously had no individual class, so the
-     inline SVG fill stayed dark. This selector explicitly fixes them. */
-  html[data-theme="dark"] .labels text tspan{
-    fill:#f8fafc!important;
-  }
-
-  html[data-theme="dark"] svg text{
-    color:#f8fafc;
-  }
-
-  html[data-theme="light"] .labels text,
-  html:not([data-theme="dark"]) .labels text{
-    fill:#111827!important;
-    color:#111827!important;
-    stroke:rgba(255,255,255,.90)!important;
-    stroke-width:2px!important;
-    paint-order:stroke fill!important;
-  }
-
-  html[data-theme="light"] .labels text tspan,
-  html:not([data-theme="dark"]) .labels text tspan{
-    fill:#111827!important;
-  }
-
-  /* Progress / weak-area surfaces */
-  html[data-theme="dark"] .weak-item,
-  html[data-theme="dark"] .weak-row{
-    background:var(--theme-surface-3)!important;
-    color:var(--theme-text)!important;
-  }
-
-  html[data-theme="dark"] .progress-track{
-    background:#273449!important;
-  }
-
-  /* Mobile overlays and sheets */
-  html[data-theme="dark"] .mobile-overlay{
-    background:rgba(0,0,0,.58);
-  }
-
-  @media (max-width:760px){
-    .topbar{
-      background:color-mix(in srgb,var(--theme-bg) 94%,transparent)!important;
-    }
-    .mobile-bottom-nav{
-      background:color-mix(in srgb,var(--theme-surface) 95%,transparent)!important;
-    }
-    .right .mobile-drawer-head{
-      background:var(--theme-surface)!important;
-    }
-  }
-
-</style>
+  </style>
   <!-- Administrative English names:
        Township/District = official TOWNENG field from MOI/NLSC administrative boundary data.
        County/City = official customary government English names.
@@ -890,7 +638,10 @@
     <div>
       <div class="brand-row">
           <div class="brand">🇹🇼 台灣行政區訓練</div>
-          <span class="author-credit">by Ru1zly</span>
+          <span class="author-stack">
+            <span class="author-credit">by Ru1zly</span>
+            <span class="theme-credit">aceryue for 日夜模式</span>
+          </span>
         </div>
       <div class="sub">台灣鄉鎮市區互動地圖訓練</div>
     </div>
@@ -901,9 +652,9 @@
       </button>
     </div>
     <div class="top-actions">
-      <button class="theme-toggle-btn" id="themeToggleBtn" type="button" aria-label="切換深色或淺色模式">
-        <span class="theme-icon" id="themeIcon">☾</span>
-        <span id="themeToggleText">深色模式</span>
+      <button class="btn theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="切換為深夜模式">
+        <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+        <span class="theme-toggle-label">深夜模式</span>
       </button>
       <button class="btn" id="adminNameLangBtn" title="切換行政區名稱語言">行政區英文</button>
       <button class="btn panel-toggle" id="toggleLeft">隱藏訓練面板</button>
@@ -969,9 +720,9 @@
       </div>
 
       <div class="mobile-settings-actions">
-        <button class="btn theme-mobile-btn" id="mobileThemeBtn">
-          <span id="mobileThemeIcon">☾</span>
-          <span id="mobileThemeText">深色模式</span>
+        <button class="btn theme-toggle" id="mobileThemeBtn" type="button" aria-pressed="false" aria-label="切換為深夜模式">
+          <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+          <span class="theme-toggle-label">深夜模式</span>
         </button>
         <button class="btn" id="mobileLangBtn">行政區英文</button>
         <button class="btn" id="mobileResetViewBtn">重設地圖</button>
@@ -1049,6 +800,56 @@
 </div>
 
 <script>
+const THEME_KEY="tw368trainer_theme_v1";
+
+function currentTheme(){
+  return document.documentElement.dataset.theme==="dark"?"dark":"light";
+}
+
+function refreshThemeControls(){
+  const isDark=currentTheme()==="dark";
+  const actionLabel=isDark?"日間模式":"深夜模式";
+  const actionIcon=isDark?"☀️":"🌙";
+  const ariaLabel=isDark?"切換為日間模式":"切換為深夜模式";
+
+  for(const button of document.querySelectorAll(".theme-toggle")){
+    button.setAttribute("aria-pressed",isDark?"true":"false");
+    button.setAttribute("aria-label",ariaLabel);
+    const icon=button.querySelector(".theme-toggle-icon");
+    const label=button.querySelector(".theme-toggle-label");
+    if(icon)icon.textContent=actionIcon;
+    if(label)label.textContent=actionLabel;
+  }
+
+  document.querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content",isDark?"#070b12":"#f4f5f7");
+}
+
+function applyTheme(theme,{persist=true}={}){
+  const next=theme==="dark"?"dark":"light";
+  document.documentElement.dataset.theme=next;
+  if(persist){
+    try{localStorage.setItem(THEME_KEY,next)}catch(_){}
+  }
+  refreshThemeControls();
+}
+
+function toggleTheme(){
+  applyTheme(currentTheme()==="dark"?"light":"dark");
+}
+
+document.querySelector("#themeBtn").onclick=toggleTheme;
+document.querySelector("#mobileThemeBtn").onclick=toggleTheme;
+refreshThemeControls();
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",event=>{
+  let saved=null;
+  try{saved=localStorage.getItem(THEME_KEY)}catch(_){}
+  if(saved!=="light"&&saved!=="dark"){
+    applyTheme(event.matches?"dark":"light",{persist:false});
+  }
+});
+
 let adminNameLanguage="zh";
 const OFFICIAL_COUNTY_EN=new Map([
   ["臺北市","Taipei City"],
@@ -2009,19 +1810,19 @@ function answerReverse(f,b){
   if(ok){
     answered=true; session.correct++;session.times.push(sec);saveStat(current,true,sec);
     correctHistory.add(sKey(current));
-    b.style.background="#dcfce7";
+    b.style.background="var(--success-soft)";
     document.querySelector("#feedback").textContent=`✅ 正確：${examAdministrativeName(current)} · ${sec.toFixed(1)}s`;
     flashFeature(current,"correct"); updateSession();
     scheduleExamTask(nextQuestion,750);
   }else{
     session.wrong++;saveStat(current,false,sec);
-    b.style.background="#fee2e2";
+    b.style.background="var(--error-soft)";
     updateSession();
     answered=true;
     const correctBtn=[...document.querySelectorAll(".answer-btn")]
       .find(x=>x.dataset.key===sKey(current));
 
-    if(correctBtn)correctBtn.style.background="#dcfce7";
+    if(correctBtn)correctBtn.style.background="var(--success-soft)";
 
     missedHistory.add(sKey(current));
     applyPersistentMissed();
@@ -2321,51 +2122,6 @@ document.querySelector("#adminNameLangBtn").onclick=()=>{
   refreshAdministrativeNameLanguage();
 };
 
-
-const THEME_STORE_KEY="taiwan-admin-trainer-theme";
-
-function getSavedTheme(){
-  const saved=localStorage.getItem(THEME_STORE_KEY);
-  if(saved==="dark"||saved==="light")return saved;
-  return window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-}
-
-function refreshThemeControls(){
-  const isDark=document.documentElement.dataset.theme==="dark";
-
-  const icon=document.querySelector("#themeIcon");
-  const text=document.querySelector("#themeToggleText");
-  const mobileIcon=document.querySelector("#mobileThemeIcon");
-  const mobileText=document.querySelector("#mobileThemeText");
-
-  if(icon)icon.textContent=isDark?"☀":"☾";
-  if(text)text.textContent=isDark?"淺色模式":"深色模式";
-  if(mobileIcon)mobileIcon.textContent=isDark?"☀":"☾";
-  if(mobileText)mobileText.textContent=isDark?"淺色模式":"深色模式";
-}
-
-function applyTheme(theme,{save=true}={}){
-  const next=theme==="dark"?"dark":"light";
-  document.documentElement.dataset.theme=next;
-  if(save)localStorage.setItem(THEME_STORE_KEY,next);
-  refreshThemeControls();
-
-  // Reapply map state so SVG classes/colors remain visually consistent.
-  if(typeof applyPersistentMarks==="function"){
-    try{ applyPersistentMarks(); }catch(_){}
-  }
-}
-
-function toggleTheme(){
-  const current=document.documentElement.dataset.theme==="dark"?"dark":"light";
-  applyTheme(current==="dark"?"light":"dark");
-}
-
-applyTheme(getSavedTheme(),{save:false});
-
 const settingsDrawer=document.querySelector("#settingsDrawer");
 const progressDrawer=document.querySelector("#progressDrawer");
 const mobileOverlay=document.querySelector("#mobileOverlay");
@@ -2381,9 +2137,6 @@ function openMobilePanel(panel){
   panel?.classList.add("mobile-open");
   mobileOverlay?.classList.add("open");
 }
-
-document.querySelector("#themeToggleBtn").onclick=toggleTheme;
-document.querySelector("#mobileThemeBtn").onclick=toggleTheme;
 
 document.querySelector("#mobileMenuBtn").onclick=()=>openMobilePanel(settingsDrawer);
 document.querySelector("#mobileProgressBtn").onclick=()=>openMobilePanel(progressDrawer);
