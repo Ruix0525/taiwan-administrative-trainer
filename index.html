@@ -217,6 +217,217 @@
 
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn{border:1px solid var(--line);background:var(--button);color:var(--ink);padding:10px 13px;border-radius:12px;cursor:pointer;font-weight:700}
+    .tutorial-launch-btn{
+      background:#fef3c7!important;
+      color:#92400e!important;
+      border-color:#f6d365!important;
+      box-shadow:0 1px 2px rgba(146,64,14,.05);
+    }
+    html[data-theme="dark"] .tutorial-launch-btn{
+      background:#3f3215!important;
+      color:#fde68a!important;
+      border-color:#725d22!important;
+    }
+
+    .tutorial-root{
+      position:fixed;
+      inset:0;
+      z-index:6000;
+      display:none;
+      pointer-events:none;
+    }
+    .tutorial-root.open{
+      display:block;
+      pointer-events:auto;
+    }
+    .tutorial-blocker{
+      position:absolute;
+      inset:0;
+      background:rgba(4,8,15,.76);
+      backdrop-filter:blur(1px);
+      cursor:default;
+    }
+    .tutorial-spotlight{
+      position:fixed;
+      z-index:1;
+      border:2px solid rgba(255,255,255,.96);
+      border-radius:16px;
+      box-shadow:
+        0 0 0 9999px rgba(4,8,15,.76),
+        0 0 0 5px rgba(250,204,21,.20),
+        0 12px 36px rgba(0,0,0,.22);
+      pointer-events:none;
+      opacity:0;
+      transition:
+        left .28s cubic-bezier(.22,.8,.2,1),
+        top .28s cubic-bezier(.22,.8,.2,1),
+        width .28s cubic-bezier(.22,.8,.2,1),
+        height .28s cubic-bezier(.22,.8,.2,1),
+        opacity .18s ease;
+    }
+    .tutorial-spotlight.visible{opacity:1}
+    .tutorial-card{
+      position:fixed;
+      z-index:3;
+      width:min(390px,calc(100vw - 28px));
+      max-height:min(78vh,660px);
+      overflow:auto;
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--ink);
+      box-shadow:0 22px 70px rgba(0,0,0,.35);
+      pointer-events:auto;
+      opacity:0;
+      transform:translateY(8px) scale(.985);
+      transition:
+        left .28s cubic-bezier(.22,.8,.2,1),
+        top .28s cubic-bezier(.22,.8,.2,1),
+        opacity .18s ease,
+        transform .18s ease;
+    }
+    .tutorial-root.open .tutorial-card{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+    .tutorial-card-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    .tutorial-kicker{
+      color:#a16207;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:5px;
+    }
+    html[data-theme="dark"] .tutorial-kicker{color:#facc15}
+    .tutorial-title{
+      margin:0;
+      font-size:21px;
+      line-height:1.18;
+      letter-spacing:-.25px;
+    }
+    .tutorial-step-count{
+      flex:0 0 auto;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      padding-top:3px;
+    }
+    .tutorial-body{
+      margin-top:13px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.65;
+    }
+    .tutorial-body strong{color:var(--ink)}
+    .tutorial-mini-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+      margin-top:11px;
+    }
+    .tutorial-mini-card{
+      padding:9px 10px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:var(--soft);
+    }
+    .tutorial-mini-card b{
+      display:block;
+      color:var(--ink);
+      font-size:12px;
+      margin-bottom:2px;
+    }
+    .tutorial-mini-card span{
+      display:block;
+      font-size:11px;
+      line-height:1.35;
+    }
+    .tutorial-color-row{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:7px;
+    }
+    .tutorial-color-dot{
+      width:13px;
+      height:13px;
+      border-radius:4px;
+      flex:0 0 auto;
+      border:1px solid rgba(0,0,0,.12);
+    }
+    .tutorial-progress-dots{
+      display:flex;
+      gap:5px;
+      margin-top:16px;
+    }
+    .tutorial-progress-dots span{
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:var(--line);
+      transition:width .18s ease,background .18s ease;
+    }
+    .tutorial-progress-dots span.active{
+      width:20px;
+      background:#eab308;
+    }
+    .tutorial-actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-top:16px;
+      padding-top:13px;
+      border-top:1px solid var(--line);
+    }
+    .tutorial-actions-right{
+      display:flex;
+      gap:7px;
+      margin-left:auto;
+    }
+    .tutorial-text-btn,
+    .tutorial-secondary-btn,
+    .tutorial-primary-btn{
+      border-radius:10px;
+      min-height:38px;
+      padding:0 12px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+    }
+    .tutorial-text-btn{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      padding-left:0;
+    }
+    .tutorial-secondary-btn{
+      border:1px solid var(--line);
+      background:var(--button);
+      color:var(--ink);
+    }
+    .tutorial-secondary-btn:disabled{
+      opacity:.38;
+      cursor:default;
+    }
+    .tutorial-primary-btn{
+      border:1px solid #eab308;
+      background:#facc15;
+      color:#422006;
+    }
+    .tutorial-primary-btn:hover{filter:brightness(.97)}
+    body.tutorial-active{
+      overflow:hidden!important;
+      user-select:none;
+    }
+
     .btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.06)}
     .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
     .btn.danger{background:#fff1f2;color:#b91c1c;border-color:#fecdd3}
@@ -695,7 +906,20 @@
         grid-template-columns:1fr 1fr;
         gap:8px;
       }
+      .tutorial-card{
+        width:calc(100vw - 20px);
+        max-height:min(66dvh,610px);
+        padding:16px;
+        border-radius:17px;
+      }
+      .tutorial-title{font-size:19px}
+      .tutorial-body{font-size:12.5px}
+      .tutorial-mini-grid{grid-template-columns:1fr 1fr}
+      .tutorial-actions{align-items:flex-end}
+      .tutorial-text-btn{font-size:11px}
+
       .mobile-settings-actions #mobileResetStatsBtn{grid-column:1/-1}
+      .mobile-settings-actions #mobileTutorialBtn{grid-column:1/-1}
       .mobile-settings-actions #mobileThemeBtn{grid-column:1/-1}
       .sidebar .control select,.sidebar .option-select{font-size:15px;min-height:46px}
       .sidebar .checkrow{font-size:14px}
@@ -864,6 +1088,7 @@
       </button>
     </div>
     <div class="top-actions">
+      <button class="btn tutorial-launch-btn" id="tutorialBtn" type="button">新手教學</button>
       <button class="btn theme-toggle" id="themeBtn" type="button" aria-pressed="false" aria-label="切換為深夜模式">
         <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
         <span class="theme-toggle-label">深夜模式</span>
@@ -938,6 +1163,7 @@
       </div>
 
       <div class="mobile-settings-actions">
+        <button class="btn tutorial-launch-btn" id="mobileTutorialBtn" type="button">新手教學</button>
         <button class="btn theme-toggle" id="mobileThemeBtn" type="button" aria-pressed="false" aria-label="切換為深夜模式">
           <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
           <span class="theme-toggle-label">深夜模式</span>
@@ -1019,6 +1245,30 @@
     <button class="mode-btn mobile-mode-btn active" data-mode="learn">Learn</button>
     <button class="mode-btn mobile-mode-btn" data-mode="weak">Weak</button>
   </nav>
+</div>
+
+<div class="tutorial-root" id="tutorialRoot" aria-hidden="true">
+  <div class="tutorial-blocker" id="tutorialBlocker"></div>
+  <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+  <section class="tutorial-card" id="tutorialCard" role="dialog" aria-modal="true"
+    aria-labelledby="tutorialTitle">
+    <div class="tutorial-card-top">
+      <div>
+        <div class="tutorial-kicker" id="tutorialKicker">新手教學</div>
+        <h2 class="tutorial-title" id="tutorialTitle"></h2>
+      </div>
+      <div class="tutorial-step-count" id="tutorialStepCount"></div>
+    </div>
+    <div class="tutorial-body" id="tutorialBody"></div>
+    <div class="tutorial-progress-dots" id="tutorialDots" aria-hidden="true"></div>
+    <div class="tutorial-actions">
+      <button class="tutorial-text-btn" id="tutorialSkipBtn" type="button">跳過教學</button>
+      <div class="tutorial-actions-right">
+        <button class="tutorial-secondary-btn" id="tutorialPrevBtn" type="button">上一步</button>
+        <button class="tutorial-primary-btn" id="tutorialNextBtn" type="button">下一步</button>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -2367,6 +2617,7 @@ async function init(){
     if(!towns.length) throw new Error("找不到鄉鎮市區資料");
     populateCounties();buildStaticMap();refreshSide();updateSession();setMode("learn");updateExamButtons();
     document.querySelector("#loading").style.display="none";
+    maybeStartTutorial();
   }catch(e){
     console.error("Taiwan 368 Trainer init error:", e);
     const isFile = location.protocol === "file:";
@@ -2692,6 +2943,368 @@ document.querySelector("#resetStats").onclick=async()=>{
 
   clearingProgress=false;
 };
+
+const TUTORIAL_STORE_KEY="tw368trainer_tutorial_complete_v1";
+const tutorialRoot=document.querySelector("#tutorialRoot");
+const tutorialSpotlight=document.querySelector("#tutorialSpotlight");
+const tutorialCard=document.querySelector("#tutorialCard");
+const tutorialTitle=document.querySelector("#tutorialTitle");
+const tutorialBody=document.querySelector("#tutorialBody");
+const tutorialStepCount=document.querySelector("#tutorialStepCount");
+const tutorialDots=document.querySelector("#tutorialDots");
+const tutorialPrevBtn=document.querySelector("#tutorialPrevBtn");
+const tutorialNextBtn=document.querySelector("#tutorialNextBtn");
+const tutorialSkipBtn=document.querySelector("#tutorialSkipBtn");
+
+let tutorialOpen=false;
+let tutorialStepIndex=0;
+let tutorialLayoutSnapshot=null;
+let tutorialMapFocusSnapshot=false;
+let tutorialRepositionTimer=0;
+
+const TUTORIAL_STEPS=[
+  {
+    title:"歡迎來到台灣行政區訓練",
+    body:`
+      這個工具用來熟悉台灣 <strong>368 個鄉鎮市區</strong> 的位置。
+      接下來會帶你快速看完每個主要功能。<br><br>
+      教學期間背景會被鎖住，請使用下方按鈕前進。
+    `
+  },
+  {
+    title:"四種訓練方式",
+    desktopTarget:".mode-grid",
+    mobileTarget:"#mobileModeBar",
+    mobilePanel:"none",
+    body:`
+      每個模式訓練的能力不同：
+      <div class="tutorial-mini-grid">
+        <div class="tutorial-mini-card"><b>Learn</b><span>直接看地名，自由探索與記憶位置。</span></div>
+        <div class="tutorial-mini-card"><b>Find</b><span>看到地名後，在地圖上點出位置。</span></div>
+        <div class="tutorial-mini-card"><b>Reverse</b><span>看到位置後，從選項中選出地名。</span></div>
+        <div class="tutorial-mini-card"><b>Weak</b><span>優先複習還不熟、曾經答錯的地方。</span></div>
+      </div>
+    `
+  },
+  {
+    title:"先選你的訓練範圍",
+    target:"#countyFilter",
+    mobilePanel:"settings",
+    body:`
+      預設是 <strong>全台</strong>。也可以只選一個縣市集中練習。
+      剛開始背行政區時，建議先分縣市熟悉，再回到全台混合測驗。
+    `
+  },
+  {
+    title:"Normal、Beginner、Hard、Extreme",
+    target:".difficulty-switch",
+    mobilePanel:"settings",
+    body:`
+      <div class="tutorial-mini-grid">
+        <div class="tutorial-mini-card"><b>Normal</b><span>答對保留綠色；答錯的正確位置保留紅色。</span></div>
+        <div class="tutorial-mini-card"><b>Beginner</b><span>只要點到正確縣市內，就算答對。</span></div>
+        <div class="tutorial-mini-card"><b>Hard</b><span>答對後不保留綠色提示。</span></div>
+        <div class="tutorial-mini-card"><b>Extreme</b><span>答對、答錯後都不保留顏色提示。</span></div>
+      </div>
+      再按一次已選取的難度，就會回到 Normal。
+    `
+  },
+  {
+    title:"地圖就是你的主要訓練區",
+    target:".map-panel",
+    mobilePanel:"none",
+    body:`
+      可以拖曳、縮放地圖，也可以使用右下角的 <strong>＋ / −</strong>。
+      桌面版還有專注地圖按鈕，可一鍵收起左右面板。
+      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#8ee5a9"></span><span><strong>綠色</strong>：答對／已保留的正確區域</span></div>
+      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ff6b6b"></span><span><strong>紅色</strong>：答錯時應該點到的正確區域</span></div>
+      <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ffd875"></span><span><strong>黃色</strong>：目前選取或提示中的區域</span></div>
+    `
+  },
+  {
+    title:"Mastery 會記錄你的熟悉程度",
+    desktopTarget:"#progressDrawer",
+    mobileTarget:"#progressDrawer",
+    mobilePanel:"progress",
+    body:`
+      一個行政區至少 <strong>答對 3 次</strong>，而且正確率達到
+      <strong>80%</strong>，才會被計為 Mastered。<br><br>
+      Weak Areas 會列出目前最需要加強的地方，方便你回到 Weak 模式重練。
+    `
+  },
+  {
+    title:"名稱、外觀與其他設定",
+    desktopTarget:".top-actions",
+    mobileTarget:".mobile-settings-actions",
+    mobilePanel:"settings",
+    body:`
+      你可以切換行政區 <strong>中文 / 英文名稱</strong>、日夜模式、邊界層級、
+      重設地圖與清除進度。<br><br>
+      <strong>「新手教學」按鈕會一直保留</strong>，之後隨時都能從頭重播這份教學。
+    `
+  },
+  {
+    title:"準備好了",
+    body:`
+      建議第一次使用先從 <strong>Learn</strong> 看熟輪廓，
+      再用 <strong>Beginner + Find</strong> 練到能辨認縣市，
+      最後回到 Normal、Hard 或 Extreme 挑戰精確位置。<br><br>
+      完成後背景就會解鎖，可以開始訓練。
+    `
+  }
+];
+
+function tutorialIsMobile(){
+  return window.matchMedia("(max-width:760px)").matches;
+}
+
+function tutorialTargetForStep(step){
+  const selector=tutorialIsMobile()
+    ? (step.mobileTarget||step.target||step.desktopTarget)
+    : (step.desktopTarget||step.target||step.mobileTarget);
+  if(!selector)return null;
+  const el=document.querySelector(selector);
+  if(!el)return null;
+  const rect=el.getBoundingClientRect();
+  if(rect.width<2||rect.height<2)return null;
+  return el;
+}
+
+function tutorialPrepareMobilePanel(step){
+  if(!tutorialIsMobile())return;
+
+  settingsDrawer?.classList.remove("mobile-open");
+  progressDrawer?.classList.remove("mobile-open");
+  mobileOverlay?.classList.remove("open");
+
+  if(step.mobilePanel==="settings"){
+    settingsDrawer?.classList.add("mobile-open");
+  }else if(step.mobilePanel==="progress"){
+    progressDrawer?.classList.add("mobile-open");
+  }
+}
+
+function tutorialPositionCard(target){
+  const gap=14;
+  const pad=10;
+  const cardRect=tutorialCard.getBoundingClientRect();
+  const vw=window.innerWidth;
+  const vh=window.innerHeight;
+
+  if(tutorialIsMobile()){
+    const left=Math.max(pad,(vw-cardRect.width)/2);
+    const top=Math.max(
+      pad,
+      vh-cardRect.height-14-(window.visualViewport?.offsetTop||0)
+    );
+    tutorialCard.style.left=`${left}px`;
+    tutorialCard.style.top=`${Math.min(top,vh-cardRect.height-pad)}px`;
+    return;
+  }
+
+  if(!target){
+    tutorialCard.style.left=`${Math.max(pad,(vw-cardRect.width)/2)}px`;
+    tutorialCard.style.top=`${Math.max(pad,(vh-cardRect.height)/2)}px`;
+    return;
+  }
+
+  const r=target.getBoundingClientRect();
+  let left=r.right+gap;
+  let top=r.top;
+
+  if(left+cardRect.width>vw-pad){
+    left=r.left-cardRect.width-gap;
+  }
+  if(left<pad){
+    left=Math.max(pad,Math.min(vw-cardRect.width-pad,r.left));
+    top=r.bottom+gap;
+    if(top+cardRect.height>vh-pad){
+      top=r.top-cardRect.height-gap;
+    }
+  }
+
+  top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
+  tutorialCard.style.left=`${left}px`;
+  tutorialCard.style.top=`${top}px`;
+}
+
+function tutorialPositionSpotlight(target){
+  if(!target){
+    tutorialSpotlight.classList.remove("visible");
+    tutorialSpotlight.style.width="0px";
+    tutorialSpotlight.style.height="0px";
+    tutorialPositionCard(null);
+    return;
+  }
+
+  const r=target.getBoundingClientRect();
+  const expand=tutorialIsMobile()?7:8;
+  tutorialSpotlight.style.left=`${Math.max(4,r.left-expand)}px`;
+  tutorialSpotlight.style.top=`${Math.max(4,r.top-expand)}px`;
+  tutorialSpotlight.style.width=`${Math.min(window.innerWidth-8,r.width+expand*2)}px`;
+  tutorialSpotlight.style.height=`${Math.min(window.innerHeight-8,r.height+expand*2)}px`;
+  tutorialSpotlight.classList.add("visible");
+  tutorialPositionCard(target);
+}
+
+function tutorialRenderDots(){
+  tutorialDots.innerHTML="";
+  TUTORIAL_STEPS.forEach((_,index)=>{
+    const dot=document.createElement("span");
+    if(index===tutorialStepIndex)dot.classList.add("active");
+    tutorialDots.appendChild(dot);
+  });
+}
+
+function renderTutorialStep(){
+  const step=TUTORIAL_STEPS[tutorialStepIndex];
+  tutorialTitle.textContent=step.title;
+  tutorialBody.innerHTML=step.body;
+  tutorialStepCount.textContent=`${tutorialStepIndex+1} / ${TUTORIAL_STEPS.length}`;
+  tutorialPrevBtn.disabled=tutorialStepIndex===0;
+  tutorialNextBtn.textContent=
+    tutorialStepIndex===TUTORIAL_STEPS.length-1?"完成":"下一步";
+  tutorialSkipBtn.style.visibility=
+    tutorialStepIndex===TUTORIAL_STEPS.length-1?"hidden":"visible";
+  tutorialRenderDots();
+
+  tutorialPrepareMobilePanel(step);
+
+  clearTimeout(tutorialRepositionTimer);
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      tutorialPositionSpotlight(tutorialTargetForStep(step));
+      tutorialRepositionTimer=setTimeout(()=>{
+        tutorialPositionSpotlight(tutorialTargetForStep(step));
+      },tutorialIsMobile()?260:80);
+    });
+  });
+}
+
+function tutorialSaveLayout(){
+  tutorialLayoutSnapshot={
+    leftHidden:layoutEl?.classList.contains("hide-left"),
+    rightHidden:layoutEl?.classList.contains("hide-right")
+  };
+  tutorialMapFocusSnapshot=!!mapFocusActive;
+}
+
+function tutorialNormalizeDesktopLayout(){
+  if(tutorialIsMobile())return;
+  if(mapFocusActive){
+    mapFocusActive=false;
+    updateFocusMapButton();
+  }
+  layoutEl?.classList.remove("hide-left","hide-right");
+  refreshPanelButtons();
+}
+
+function tutorialRestoreLayout(){
+  if(tutorialIsMobile()){
+    settingsDrawer?.classList.remove("mobile-open");
+    progressDrawer?.classList.remove("mobile-open");
+    mobileOverlay?.classList.remove("open");
+    return;
+  }
+
+  if(tutorialLayoutSnapshot){
+    layoutEl?.classList.toggle("hide-left",!!tutorialLayoutSnapshot.leftHidden);
+    layoutEl?.classList.toggle("hide-right",!!tutorialLayoutSnapshot.rightHidden);
+    refreshPanelButtons();
+  }
+
+  mapFocusActive=false;
+  updateFocusMapButton();
+  refreshMapAfterPanelTransition();
+}
+
+function startTutorial(stepIndex=0){
+  if(tutorialOpen)return;
+
+  if(examActive)stopExam({restore:true});
+  closeMobilePanels();
+  tutorialSaveLayout();
+  tutorialNormalizeDesktopLayout();
+
+  tutorialOpen=true;
+  tutorialStepIndex=Math.max(0,Math.min(TUTORIAL_STEPS.length-1,stepIndex));
+  document.body.classList.add("tutorial-active");
+  tutorialRoot.classList.add("open");
+  tutorialRoot.setAttribute("aria-hidden","false");
+
+  renderTutorialStep();
+}
+
+function finishTutorial({completed=true}={}){
+  if(!tutorialOpen)return;
+
+  tutorialOpen=false;
+  clearTimeout(tutorialRepositionTimer);
+  tutorialRoot.classList.remove("open");
+  tutorialRoot.setAttribute("aria-hidden","true");
+  document.body.classList.remove("tutorial-active");
+  tutorialSpotlight.classList.remove("visible");
+
+  if(completed){
+    try{localStorage.setItem(TUTORIAL_STORE_KEY,"1")}catch(_){}
+  }
+
+  tutorialRestoreLayout();
+}
+
+function maybeStartTutorial(){
+  let completed=false;
+  try{completed=localStorage.getItem(TUTORIAL_STORE_KEY)==="1"}catch(_){}
+  if(!completed){
+    setTimeout(()=>startTutorial(0),280);
+  }
+}
+
+tutorialPrevBtn.onclick=()=>{
+  if(tutorialStepIndex<=0)return;
+  tutorialStepIndex--;
+  renderTutorialStep();
+};
+
+tutorialNextBtn.onclick=()=>{
+  if(tutorialStepIndex>=TUTORIAL_STEPS.length-1){
+    finishTutorial({completed:true});
+    return;
+  }
+  tutorialStepIndex++;
+  renderTutorialStep();
+};
+
+tutorialSkipBtn.onclick=()=>finishTutorial({completed:true});
+document.querySelector("#tutorialBtn").onclick=()=>startTutorial(0);
+document.querySelector("#mobileTutorialBtn").onclick=()=>{
+  closeMobilePanels();
+  setTimeout(()=>startTutorial(0),80);
+};
+
+tutorialRoot.addEventListener("wheel",event=>{
+  if(tutorialOpen && !tutorialCard.contains(event.target))event.preventDefault();
+},{passive:false});
+
+tutorialRoot.addEventListener("touchmove",event=>{
+  if(tutorialOpen && !tutorialCard.contains(event.target))event.preventDefault();
+},{passive:false});
+
+tutorialRoot.addEventListener("click",event=>{
+  // The background intentionally does nothing. Tutorial buttons are the only
+  // way to advance/finish, matching the dashboard onboarding behavior.
+  if(event.target===tutorialRoot || event.target===document.querySelector("#tutorialBlocker")){
+    event.preventDefault();
+    event.stopPropagation();
+  }
+});
+
+window.addEventListener("resize",()=>{
+  if(!tutorialOpen)return;
+  clearTimeout(tutorialRepositionTimer);
+  tutorialRepositionTimer=setTimeout(renderTutorialStep,60);
+},{passive:true});
+
 // The SVG uses a fixed internal coordinate system.
  // Panel toggles and window resizing require no map rebuild.
 init();
