@@ -269,31 +269,46 @@
       background:#9d802f;
       box-shadow:0 0 0 1px rgba(255,230,150,.05);
     }
+    .scope-switch{position:relative}
     .scope-hint{
+      position:absolute;
+      left:0;
+      top:calc(100% + 8px);
+      z-index:40;
+      width:min(310px,calc(100vw - 40px));
       display:flex;
       align-items:flex-start;
-      gap:12px;
-      margin-top:10px;
-      padding:14px 16px;
+      gap:10px;
+      padding:11px 13px;
       border:1px solid #e3c561;
-      border-radius:18px;
+      border-radius:14px;
       background:#f8f1df;
       color:#7a6330;
-      font-size:12px;
-      line-height:1.38;
+      font-size:11.5px;
+      line-height:1.35;
       font-weight:650;
-      box-shadow:0 1px 0 rgba(255,255,255,.4) inset;
+      box-shadow:0 10px 26px rgba(69,52,12,.13);
+      opacity:0;
+      visibility:hidden;
+      transform:translateY(-4px);
+      pointer-events:none;
+      transition:opacity .14s ease,transform .14s ease,visibility .14s ease;
+    }
+    .scope-hint.visible{
+      opacity:1;
+      visibility:visible;
+      transform:translateY(0);
     }
     .scope-hint-icon{
       flex:0 0 auto;
-      width:34px;
-      height:34px;
+      width:26px;
+      height:26px;
       display:grid;
       place-items:center;
       border-radius:50%;
       background:#e0bc4d;
       color:#725600;
-      font-size:18px;
+      font-size:14px;
       font-weight:900;
       box-shadow:inset 0 -1px 0 rgba(0,0,0,.08);
     }
@@ -302,14 +317,14 @@
       display:block;
       color:#7a5f1a;
       font-weight:840;
-      font-size:14px;
-      margin-bottom:2px;
+      font-size:12.5px;
+      margin-bottom:1px;
     }
     .scope-hint-sub{
       display:block;
       color:#8b7540;
       font-weight:650;
-      font-size:12px;
+      font-size:11.5px;
     }
     #countyFilter.scope-select-locked,
     #countyFilter:disabled{
@@ -1347,9 +1362,9 @@
         <div class="scope-switch" role="group" aria-label="範圍類型">
           <button type="button" class="scope-pill active" id="scopeCountyBtn" data-scope-mode="county">縣市</button>
           <button type="button" class="scope-pill" id="scopeRegionBtn" data-scope-mode="region">區域</button>
+          <div class="scope-hint" id="scopeHint" role="tooltip" aria-hidden="true"></div>
         </div>
         <select id="countyFilter"><option value="ALL">全台</option></select>
-        <div class="scope-hint" id="scopeHint" style="display:none"></div>
       </div>
 
       <div>
@@ -3100,12 +3115,46 @@ const scopeCountyBtn=document.querySelector("#scopeCountyBtn");
 const scopeRegionBtn=document.querySelector("#scopeRegionBtn");
 const scopeHint=document.querySelector("#scopeHint");
 
-function updateScopeHint(){
+let beginnerScopeHintTimer=0;
+
+function renderBeginnerScopeHint(){
   if(!scopeHint)return;
+  scopeHint.innerHTML=`
+    <span class="scope-hint-icon" aria-hidden="true">i</span>
+    <span class="scope-hint-copy">
+      <span class="scope-hint-title">Beginner：不適用於單一縣市</span>
+      <span class="scope-hint-sub">請從「區域」中選擇。</span>
+    </span>
+  `;
+}
+
+function showBeginnerScopeHint({autoHide=false}={}){
+  if(!scopeHint || !beginnerModeInput?.checked)return;
+  clearTimeout(beginnerScopeHintTimer);
+  renderBeginnerScopeHint();
+  scopeHint.classList.add("visible");
+  scopeHint.setAttribute("aria-hidden","false");
+
+  if(autoHide){
+    beginnerScopeHintTimer=setTimeout(()=>{
+      hideBeginnerScopeHint();
+    },2500);
+  }
+}
+
+function hideBeginnerScopeHint(){
+  if(!scopeHint)return;
+  clearTimeout(beginnerScopeHintTimer);
+  scopeHint.classList.remove("visible");
+  scopeHint.setAttribute("aria-hidden","true");
+}
+
+function updateScopeHint(){
   const beginnerActive=!!beginnerModeInput?.checked;
 
   if(scopeCountyBtn){
-    scopeCountyBtn.disabled=beginnerActive;
+    // Functionally disabled, but still receives hover/tap so we can explain why.
+    scopeCountyBtn.disabled=false;
     scopeCountyBtn.classList.toggle("scope-disabled",beginnerActive);
     scopeCountyBtn.setAttribute("aria-disabled",beginnerActive?"true":"false");
     scopeCountyBtn.title=beginnerActive
@@ -3113,7 +3162,7 @@ function updateScopeHint(){
       : "依縣市選擇範圍";
   }
 
-  // Beginner automatically uses Region scope, so the dropdown must stay usable.
+  // Beginner automatically uses Region scope, so the dropdown remains usable.
   const scopeSelect=document.querySelector("#countyFilter");
   if(scopeSelect){
     scopeSelect.disabled=false;
@@ -3121,18 +3170,8 @@ function updateScopeHint(){
     scopeSelect.setAttribute("aria-disabled","false");
   }
 
-  if(beginnerActive){
-    scopeHint.style.display="flex";
-    scopeHint.innerHTML=`
-      <span class="scope-hint-icon" aria-hidden="true">i</span>
-      <span class="scope-hint-copy">
-        <span class="scope-hint-title">Beginner：不適用於單一縣市</span>
-        <span class="scope-hint-sub">請從「區域」中選擇。</span>
-      </span>
-    `;
-  }else{
-    scopeHint.style.display="none";
-    scopeHint.innerHTML="";
+  if(!beginnerActive){
+    hideBeginnerScopeHint();
   }
 }
 
@@ -3192,15 +3231,46 @@ function setDifficultyMode(nextMode){
 beginnerModeBtn.onclick=()=>setDifficultyMode("beginner");
 hardModeBtn.onclick=()=>setDifficultyMode("hard");
 extremeModeBtn.onclick=()=>setDifficultyMode("extreme");
-scopeCountyBtn.onclick=()=>{
-  if(beginnerModeInput.checked)return;
+scopeCountyBtn.onclick=event=>{
+  if(beginnerModeInput.checked){
+    event.preventDefault();
+    showBeginnerScopeHint({autoHide:window.matchMedia("(max-width:760px)").matches});
+    return;
+  }
   setScopeMode("county",{selectedValue:previousCountySelection});
   handleScopeChange({resetView:true});
 };
+
+scopeCountyBtn.addEventListener("mouseenter",()=>{
+  if(beginnerModeInput.checked && !window.matchMedia("(max-width:760px)").matches){
+    showBeginnerScopeHint();
+  }
+});
+
+scopeCountyBtn.addEventListener("mouseleave",()=>{
+  if(!window.matchMedia("(max-width:760px)").matches){
+    hideBeginnerScopeHint();
+  }
+});
+
+scopeCountyBtn.addEventListener("focus",()=>{
+  if(beginnerModeInput.checked)showBeginnerScopeHint();
+});
+
+scopeCountyBtn.addEventListener("blur",hideBeginnerScopeHint);
 scopeRegionBtn.onclick=()=>{
   setScopeMode("region",{selectedValue:previousRegionSelection});
   handleScopeChange({resetView:true});
 };
+
+document.addEventListener("pointerdown",event=>{
+  if(
+    scopeHint?.classList.contains("visible") &&
+    !scopeCountyBtn?.contains(event.target)
+  ){
+    hideBeginnerScopeHint();
+  }
+});
 refreshDifficultyUI();
 updateScopeModeUI();
 updateScopeHint();
@@ -3513,6 +3583,7 @@ const TUTORIAL_STEPS=[
         <div class="tutorial-mini-card"><b>Extreme</b><span>答對、答錯後都不保留顏色提示。</span></div>
       </div>
       <br>開啟 Beginner 時會自動切到 <strong>區域</strong>，並把「縣市」按鈕劃線停用；
+      桌面版將滑鼠移到被劃掉的「縣市」上、手機版點一下，即可查看原因；
       可選北部、中部、南部、東部、離島或<strong>全台</strong>。再按一次已選取的難度，就會回到 Normal。
     `
   },
