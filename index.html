@@ -28,6 +28,85 @@
     .mobile-header-actions,.mobile-drawer-head,.mobile-settings-actions,
     .mobile-overlay,.mobile-bottom-nav,.mobile-exam-action{display:none}
     .danger-soft{color:#b42318;border-color:#fecdca;background:#fff}
+    .difficulty-block{
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+      margin-top:2px;
+    }
+    .difficulty-label{
+      font-size:11px;
+      font-weight:800;
+      color:#667085;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .difficulty-switch{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+      padding:4px;
+      border:1px solid #dfe4ea;
+      border-radius:15px;
+      background:#f4f6f8;
+    }
+    .difficulty-pill{
+      appearance:none;
+      border:1px solid transparent;
+      border-radius:11px;
+      min-width:0;
+      min-height:54px;
+      padding:8px 9px;
+      background:transparent;
+      color:#667085;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:center;
+      gap:2px;
+      cursor:pointer;
+      text-align:left;
+      transition:
+        background .16s ease,
+        border-color .16s ease,
+        box-shadow .16s ease,
+        color .16s ease,
+        transform .12s ease;
+    }
+    .difficulty-pill:hover{
+      background:#fff;
+      color:#344054;
+    }
+    .difficulty-pill:active{transform:scale(.985)}
+    .difficulty-pill.active{
+      background:#fff;
+      color:#101828;
+      border-color:#d0d5dd;
+      box-shadow:0 2px 7px rgba(16,24,40,.08);
+    }
+    .difficulty-pill[data-difficulty="hard"].active{
+      background:#101828;
+      color:#fff;
+      border-color:#101828;
+    }
+    .difficulty-pill[data-difficulty="extreme"].active{
+      background:#7f1d1d;
+      color:#fff;
+      border-color:#7f1d1d;
+    }
+    .difficulty-name{
+      font-size:13px;
+      font-weight:900;
+      line-height:1.1;
+    }
+    .difficulty-desc{
+      font-size:9.5px;
+      line-height:1.25;
+      font-weight:650;
+      opacity:.78;
+      white-space:normal;
+    }
+
 
     .sub{color:var(--muted);font-size:13px;margin-top:2px}
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -344,6 +423,18 @@
       .sidebar .control select,.sidebar .option-select{font-size:15px;min-height:46px}
       .sidebar .checkrow{font-size:14px}
       .sidebar .section-title{font-size:12px}
+      .difficulty-switch{
+        gap:8px;
+        padding:5px;
+        border-radius:17px;
+      }
+      .difficulty-pill{
+        min-height:62px;
+        border-radius:13px;
+        padding:9px 10px;
+      }
+      .difficulty-name{font-size:14px}
+      .difficulty-desc{font-size:10px}
 
       /* Mastery bottom sheet */
       .right,
@@ -451,6 +542,8 @@
     @media (max-width:390px){
       .map-panel.name-question-mode .question{font-size:21px}
       .map-panel.learn-mode .question{font-size:19px}
+      .difficulty-switch{grid-template-columns:1fr}
+      .difficulty-pill{min-height:54px}
     }
 
     @media (max-width:950px) and (orientation:landscape){
@@ -528,8 +621,21 @@
               <option value="off">Off｜不顯示邊界</option>
             </select>
           </div>
-          <label class="checkrow"><input type="checkbox" id="hardMode"> Hard mode｜不保留答對區域</label>
-          <label class="checkrow"><input type="checkbox" id="extremeMode"> Extreme mode｜答錯不標示正確位置</label>
+          <div class="difficulty-block">
+            <div class="difficulty-label">Difficulty</div>
+            <div class="difficulty-switch" role="group" aria-label="Difficulty mode">
+              <button type="button" class="difficulty-pill" id="hardModeBtn" data-difficulty="hard">
+                <span class="difficulty-name">Hard</span>
+                <span class="difficulty-desc">不保留答對區域</span>
+              </button>
+              <button type="button" class="difficulty-pill" id="extremeModeBtn" data-difficulty="extreme">
+                <span class="difficulty-name">Extreme</span>
+                <span class="difficulty-desc">Hard + 不提示錯題位置</span>
+              </button>
+            </div>
+            <input type="checkbox" id="hardMode" hidden>
+            <input type="checkbox" id="extremeMode" hidden>
+          </div>
         </div>
       </div>
 
@@ -988,9 +1094,12 @@ function currentScopeName(){
 
 function applyPersistentCorrect(){
   const hard=document.querySelector("#hardMode")?.checked;
+  const extreme=document.querySelector("#extremeMode")?.checked;
   townLayer.selectAll(".town").classed("correct",false);
 
-  if(hard || mode==="learn")return;
+  // Extreme is a strict superset of Hard:
+  // neither Hard nor Extreme keeps correctly answered regions green.
+  if(hard || extreme || mode==="learn")return;
 
   townLayer
     .selectAll(".town")
@@ -1919,8 +2028,43 @@ document.querySelector("#mobileExamBtn").onclick=()=>{
   else startExam();
 };
 
-document.querySelector("#hardMode").onchange=applyPersistentCorrect;
-document.querySelector("#extremeMode").onchange=applyPersistentMissed;
+const hardModeInput=document.querySelector("#hardMode");
+const extremeModeInput=document.querySelector("#extremeMode");
+const hardModeBtn=document.querySelector("#hardModeBtn");
+const extremeModeBtn=document.querySelector("#extremeModeBtn");
+
+function refreshDifficultyUI(){
+  hardModeBtn?.classList.toggle("active",!!hardModeInput?.checked);
+  extremeModeBtn?.classList.toggle("active",!!extremeModeInput?.checked);
+
+  hardModeBtn?.setAttribute("aria-pressed",hardModeInput?.checked?"true":"false");
+  extremeModeBtn?.setAttribute("aria-pressed",extremeModeInput?.checked?"true":"false");
+}
+
+function setDifficultyMode(nextMode){
+  const hardWasOn=!!hardModeInput.checked;
+  const extremeWasOn=!!extremeModeInput.checked;
+
+  if(nextMode==="hard"){
+    // Clicking the already-selected option returns to Normal.
+    hardModeInput.checked=!hardWasOn;
+    extremeModeInput.checked=false;
+  }else if(nextMode==="extreme"){
+    // Extreme replaces Hard rather than stacking a second checkbox.
+    extremeModeInput.checked=!extremeWasOn;
+    hardModeInput.checked=false;
+  }else{
+    hardModeInput.checked=false;
+    extremeModeInput.checked=false;
+  }
+
+  refreshDifficultyUI();
+  applyPersistentMarks();
+}
+
+hardModeBtn.onclick=()=>setDifficultyMode("hard");
+extremeModeBtn.onclick=()=>setDifficultyMode("extreme");
+refreshDifficultyUI();
 
 document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
   setMode(b.dataset.mode);
