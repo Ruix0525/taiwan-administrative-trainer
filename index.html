@@ -539,6 +539,13 @@
     .county-border{fill:none;stroke:var(--county-stroke);stroke-width:1.25;vector-effect:non-scaling-stroke;pointer-events:none}
     .quiz-card{position:relative;z-index:3;background:var(--quiz);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 12px 8px;text-align:center;box-shadow:none;backdrop-filter:blur(8px);flex:0 0 auto}
     .quiz-label{font-size:9px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.05em}
+    .exam-counter{
+      position:absolute;top:8px;right:12px;display:none;
+      padding:3px 8px;border:1px solid var(--line);border-radius:999px;
+      background:var(--soft);color:var(--muted);font-size:11px;line-height:1;
+      font-weight:850;letter-spacing:.02em;z-index:2
+    }
+    .exam-counter.visible{display:block}
     .question{font-size:20px;font-weight:900;margin-top:1px;line-height:1.15}
     .hint{font-size:11px;color:var(--muted);margin-top:3px}
     .feedback{margin-top:3px;font-size:12px;font-weight:800;min-height:15px}
@@ -576,7 +583,14 @@
       min-height:54px;
     }
 
-    .map-panel.reverse-mode .quiz-card{padding-bottom:7px}
+    .map-panel.reverse-mode .quiz-card{padding:9px 16px 11px}
+    .map-panel.reverse-mode .quiz-label{font-size:12px;letter-spacing:.08em}
+    .map-panel.reverse-mode .question{font-size:27px;line-height:1.12;margin-top:2px}
+    .map-panel.reverse-mode .hint{font-size:14px;margin-top:5px;font-weight:750}
+    .map-panel.reverse-mode .answers{gap:8px;margin-top:11px!important}
+    .map-panel.reverse-mode .answer-btn{
+      font-size:15px;padding:10px 12px;font-weight:850;min-height:42px
+    }
     .zoom{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:4}
     .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--button);color:var(--ink);font-weight:900;cursor:pointer}
     .focus-map-btn{
@@ -709,6 +723,14 @@
     html[data-theme="dark"] .town.wrong{fill:#923a49!important}
     html[data-theme="dark"] .town.target{fill:#9b6b20!important}
     html[data-theme="dark"] .town.missed{fill:#b43b50!important}
+    html[data-theme="dark"] .town.correct,
+    html[data-theme="dark"] .town.wrong,
+    html[data-theme="dark"] .town.target,
+    html[data-theme="dark"] .town.missed{
+      stroke:#05080d!important;
+      stroke-width:.9!important;
+      stroke-opacity:1!important;
+    }
     html[data-theme="dark"] .town.learned{fill:#1c4936}
     html[data-theme="dark"] .red{background:#45202a;color:#fecdd3}
     html[data-theme="dark"] .yellow{background:#433518;color:#fde68a}
@@ -891,6 +913,14 @@
         margin-top:7px!important;
       }
       .answer-btn{font-size:12px;padding:9px 7px}
+      .map-panel.reverse-mode .quiz-card{padding:8px 10px 10px}
+      .map-panel.reverse-mode .quiz-label{font-size:11px}
+      .map-panel.reverse-mode .question{font-size:23px;line-height:1.12}
+      .map-panel.reverse-mode .hint{font-size:13px;margin-top:4px}
+      .map-panel.reverse-mode .answer-btn{
+        font-size:14px;padding:10px 8px;min-height:42px
+      }
+      .exam-counter{top:7px;right:8px;font-size:10px;padding:3px 7px}
 
       .zoom{
         right:10px;
@@ -1245,6 +1275,7 @@
       <div class="loading" id="loading">載入台灣行政區地圖中…</div>
       <div class="quiz-card">
         <div class="quiz-label" id="modeLabel">LEARN</div>
+        <div class="exam-counter" id="examCounter" aria-live="polite"></div>
         <div class="question" id="question">探索行政區</div>
         <div class="hint" id="hint"></div>
         <div class="feedback" id="feedback"></div>
@@ -1649,8 +1680,8 @@ function buildExamQuestionPool(){
   let items=eligible();
 
   if(mode==="weak"){
-    // Weak mode keeps the existing weakness weighting, but every place
-    // still appears at most once in the same session.
+    // eligible() already restricts this to true weak areas (wrong > 0).
+    // Lower accuracy and repeated mistakes are prioritized.
     items=[...items].sort((a,b)=>{
       const sa=getStat(a);
       const sb=getStat(b);
@@ -1661,8 +1692,8 @@ function buildExamQuestionPool(){
       const accA=na?sa.right/na:0;
       const accB=nb?sb.right/nb:0;
 
-      const scoreA=(1-accA)*8+Math.max(1,4-sa.right)+Math.random()*1.5;
-      const scoreB=(1-accB)*8+Math.max(1,4-sb.right)+Math.random()*1.5;
+      const scoreA=(1-accA)*8+(sa.wrong*1.35)+Math.max(0,3-sa.right)*.6+Math.random()*.8;
+      const scoreB=(1-accB)*8+(sb.wrong*1.35)+Math.max(0,3-sb.right)*.6+Math.random()*.8;
 
       return scoreB-scoreA;
     });
@@ -1693,6 +1724,7 @@ function showExamCompleteState(){
   document.querySelector("#hint").textContent=`已完成 ${examQuestionPool.length} 題`;
   document.querySelector("#feedback").textContent="";
   resetCurrentPlaceCard();
+  updateExamCounter();
   updateExamButtons();
 }
 
@@ -1722,8 +1754,9 @@ function eligible(){
   }
 
   if(mode==="weak"){
-    const weakOnly=a.filter(x=>mastery(x)!=="green");
-    if(weakOnly.length)a=weakOnly;
+    // Weak mode only includes places the user has actually answered incorrectly.
+    // Correct-only and unseen places are not weak.
+    a=a.filter(x=>getStat(x).wrong>0);
   }
 
   return a;
@@ -2164,6 +2197,27 @@ function updateExamButtons(){
   }
 }
 
+function updateExamCounter(){
+  const counter=document.querySelector("#examCounter");
+  if(!counter)return;
+
+  const total=examQuestionPool.length||0;
+  const shouldShow=mode!=="learn" && (examActive||examCompleted) && total>0;
+
+  counter.classList.toggle("visible",shouldShow);
+
+  if(!shouldShow){
+    counter.textContent="";
+    return;
+  }
+
+  const currentNumber=examCompleted
+    ? total
+    : Math.max(1,Math.min(examQuestionIndex,total));
+
+  counter.textContent=`${currentNumber} / ${total}`;
+}
+
 function showExamReadyState(){
   if(mode==="learn")return;
 
@@ -2176,6 +2230,7 @@ function showExamReadyState(){
   document.querySelector("#question").textContent="準備開始";
   document.querySelector("#hint").textContent="";
   resetCurrentPlaceCard();
+  updateExamCounter();
   updateExamButtons();
 }
 
@@ -2187,16 +2242,23 @@ function startExam(){
   examBaselineStats=cloneStats(stats);
   examBaselineCorrectHistory=new Set(correctHistory);
 
-  session={correct:0,wrong:0,times:[]};
+  // New exam = clean visual board. Stats stay saved, but previous session
+  // green/red map marks must not carry into the next exam.
+  correctHistory=new Set();
   missedHistory=new Set();
+
+  session={correct:0,wrong:0,times:[]};
   updateSession();
 
   buildExamQuestionPool();
 
   if(!examQuestionPool.length){
-    document.querySelector("#question").textContent="沒有可用題目";
-    document.querySelector("#hint").textContent="";
+    document.querySelector("#question").textContent=
+      mode==="weak" ? "目前沒有 Weak 題目" : "沒有可用題目";
+    document.querySelector("#hint").textContent=
+      mode==="weak" ? "只有曾經答錯過的行政區會進入 Weak mode" : "";
     document.querySelector("#feedback").textContent="";
+    updateExamCounter();
     examActive=false;
     updateExamButtons();
     return;
@@ -2327,6 +2389,7 @@ function nextQuestion(){
     return;
   }
 
+  updateExamCounter();
   currentStart=performance.now();
   const p=current.properties;
 
@@ -2540,13 +2603,17 @@ function refreshSide(){
   const mobileTotal=document.querySelector("#mobileTotal");
   if(mobileMastered)mobileMastered.textContent=mastered;
   if(mobileTotal)mobileTotal.textContent=towns.length||"—";
-  const weak=towns.map(f=>({f,s:getStat(f)})).filter(x=>x.s.right+x.s.wrong>0)
+  const weak=towns
+    .map(f=>({f,s:getStat(f)}))
+    .filter(x=>x.s.wrong>0)
     .sort((a,b)=>{
-      const aa=a.s.right/(a.s.right+a.s.wrong),bb=b.s.right/(b.s.right+b.s.wrong);
+      const aa=a.s.right/(a.s.right+a.s.wrong);
+      const bb=b.s.right/(b.s.right+b.s.wrong);
       return aa-bb || (b.s.wrong-a.s.wrong);
-    }).slice(0,12);
+    })
+    .slice(0,12);
   const box=document.querySelector("#weakList");box.innerHTML="";
-  if(!weak.length){box.innerHTML='<div class="muted" style="font-size:13px">開始作答後，這裡會自動列出最弱的行政區。</div>';return}
+  if(!weak.length){box.innerHTML='<div class="muted" style="font-size:13px">答錯後，這裡會自動列出需要加強的行政區。</div>';return}
   weak.forEach(({f,s})=>{
     const n=s.right+s.wrong,acc=Math.round(s.right/n*100),div=document.createElement("div");div.className="weak-item";
     div.innerHTML=`<span>${adminCountyName(f)} · <b>${adminTownName(f)}</b></span><span class="pill ${mastery(f)}">${acc}%</span>`;
