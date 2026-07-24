@@ -602,6 +602,18 @@
       transition:transform .32s cubic-bezier(.22,.8,.2,1);
     }
     .focus-map-btn.active .focus-map-icon{transform:rotate(180deg) scale(.92)}
+    .focus-map-btn::after{
+      content:"M";
+      position:absolute;
+      right:4px;
+      bottom:3px;
+      font-size:8px;
+      line-height:1;
+      font-weight:900;
+      opacity:.52;
+      pointer-events:none;
+    }
+    .focus-map-btn.active::after{content:"Esc"}
 
     /* Smooth administrative-language swap without changing typography. */
     .labels,
@@ -1241,7 +1253,7 @@
       <svg id="map"></svg>
       <div class="zoom">
         <button id="focusMapBtn" class="focus-map-btn" type="button"
-          aria-label="專注地圖" title="專注地圖">
+          aria-label="專注地圖（快捷鍵 M）" title="專注地圖（M）">
           <span class="focus-map-icon" aria-hidden="true">⤢</span>
         </button>
         <button id="zoomIn" aria-label="放大">＋</button>
@@ -2835,8 +2847,15 @@ function updateFocusMapButton(){
 
   button.classList.toggle("active",mapFocusActive);
   icon.textContent=mapFocusActive?"⤡":"⤢";
-  button.setAttribute("aria-label",mapFocusActive?"退出專注地圖":"專注地圖");
-  button.title=mapFocusActive?"退出專注地圖":"專注地圖";
+  button.setAttribute(
+    "aria-label",
+    mapFocusActive
+      ? "退出專注地圖（Esc 或 M）"
+      : "專注地圖（快捷鍵 M）"
+  );
+  button.title=mapFocusActive
+    ? "退出專注地圖（Esc / M）"
+    : "專注地圖（M）";
 }
 
 function setMapFocus(active){
@@ -2877,6 +2896,40 @@ function togglePanel(className){
 document.querySelector("#toggleLeft").onclick=()=>togglePanel("hide-left");
 document.querySelector("#toggleRight").onclick=()=>togglePanel("hide-right");
 document.querySelector("#focusMapBtn").onclick=()=>setMapFocus(!mapFocusActive);
+
+function shouldIgnoreMapShortcut(event){
+  if(event.metaKey||event.ctrlKey||event.altKey)return true;
+
+  const target=event.target;
+  if(!target)return false;
+
+  return (
+    target.isContentEditable ||
+    ["INPUT","TEXTAREA","SELECT"].includes(target.tagName)
+  );
+}
+
+document.addEventListener("keydown",event=>{
+  if(shouldIgnoreMapShortcut(event))return;
+
+  // During onboarding, keep keyboard focus on the tutorial flow rather than
+  // allowing background layout changes.
+  if(typeof tutorialOpen!=="undefined" && tutorialOpen)return;
+
+  if(event.key==="Escape"){
+    if(mapFocusActive){
+      event.preventDefault();
+      setMapFocus(false);
+    }
+    return;
+  }
+
+  if(event.key.toLowerCase()==="m" && !event.repeat){
+    event.preventDefault();
+    setMapFocus(!mapFocusActive);
+  }
+});
+
 refreshPanelButtons();
 updateFocusMapButton();
 document.querySelector("#resetView").onclick=()=>applyMapState({resetView:true});
@@ -3061,7 +3114,9 @@ const TUTORIAL_STEPS=[
     mobilePanel:"none",
     body:`
       可以拖曳、縮放地圖，也可以使用右下角的 <strong>＋ / −</strong>。
-      桌面版還有專注地圖按鈕，可一鍵收起左右面板。
+      桌面版還有專注地圖按鈕，可一鍵收起左右面板。<br>
+      快捷鍵：按 <strong>M</strong> 可切換專注地圖；放大後按
+      <strong>Esc</strong> 可立即縮回。
       <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#8ee5a9"></span><span><strong>綠色</strong>：答對／已保留的正確區域</span></div>
       <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ff6b6b"></span><span><strong>紅色</strong>：答錯時應該點到的正確區域</span></div>
       <div class="tutorial-color-row"><span class="tutorial-color-dot" style="background:#ffd875"></span><span><strong>黃色</strong>：目前選取或提示中的區域</span></div>
