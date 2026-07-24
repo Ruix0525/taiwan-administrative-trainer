@@ -246,53 +246,79 @@
     .scope-hint{
       display:flex;
       align-items:flex-start;
-      gap:8px;
-      margin-top:7px;
-      padding:8px 10px;
-      border:1px solid #f3d889;
-      border-radius:11px;
-      background:#fff9e8;
-      color:#6f5710;
+      gap:12px;
+      margin-top:10px;
+      padding:14px 16px;
+      border:1px solid #e3c561;
+      border-radius:18px;
+      background:#f8f1df;
+      color:#7a6330;
       font-size:12px;
-      line-height:1.35;
+      line-height:1.38;
       font-weight:650;
+      box-shadow:0 1px 0 rgba(255,255,255,.4) inset;
     }
     .scope-hint-icon{
       flex:0 0 auto;
-      width:16px;
-      height:16px;
+      width:34px;
+      height:34px;
       display:grid;
       place-items:center;
       border-radius:50%;
-      background:#f4c542;
-      color:#5e4500;
-      font-size:10px;
+      background:#e0bc4d;
+      color:#725600;
+      font-size:18px;
       font-weight:900;
-      margin-top:1px;
+      box-shadow:inset 0 -1px 0 rgba(0,0,0,.08);
     }
     .scope-hint-copy{min-width:0}
     .scope-hint-title{
       display:block;
-      color:#5f4a0d;
-      font-weight:850;
-      margin-bottom:1px;
+      color:#7a5f1a;
+      font-weight:840;
+      font-size:14px;
+      margin-bottom:2px;
     }
     .scope-hint-sub{
       display:block;
       color:#8b7540;
-      font-weight:600;
+      font-weight:650;
+      font-size:12px;
+    }
+    #countyFilter.scope-select-locked,
+    #countyFilter:disabled{
+      cursor:not-allowed;
+      color:#725d24;
+      border-color:#e1c363;
+      background:
+        linear-gradient(rgba(250,243,220,.98),rgba(250,243,220,.98)),
+        repeating-linear-gradient(-45deg,rgba(224,191,103,.28) 0 11px,rgba(224,191,103,.10) 11px 22px);
+      box-shadow:0 0 0 1px rgba(227,197,97,.18) inset;
+      opacity:1;
+      -webkit-text-fill-color:#725d24;
     }
     html[data-theme="dark"] .scope-hint{
-      background:#201c10;
-      border-color:#5a4a1e;
-      color:#eadb9a;
+      background:#2a2313;
+      border-color:#725c24;
+      color:#ddcc97;
+      box-shadow:none;
     }
     html[data-theme="dark"] .scope-hint-icon{
       background:#8a6a12;
       color:#fff0a6;
     }
-    html[data-theme="dark"] .scope-hint-title{color:#f4df8a}
-    html[data-theme="dark"] .scope-hint-sub{color:#c8b978}
+    html[data-theme="dark"] .scope-hint-title{color:#f0d67b}
+    html[data-theme="dark"] .scope-hint-sub{color:#c9b983}
+    html[data-theme="dark"] #countyFilter.scope-select-locked,
+    html[data-theme="dark"] #countyFilter:disabled{
+      color:#e3d6a8;
+      border-color:#745f2a;
+      background:
+        linear-gradient(rgba(39,32,19,.98),rgba(39,32,19,.98)),
+        repeating-linear-gradient(-45deg,rgba(205,172,81,.22) 0 11px,rgba(205,172,81,.07) 11px 22px);
+      box-shadow:0 0 0 1px rgba(205,172,81,.12) inset;
+      -webkit-text-fill-color:#e3d6a8;
+    }
 
 
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -1290,7 +1316,7 @@
         </div>
       </div>
 
-      <div class="control">
+      <div class="control" id="scopeControl">
         <label>範圍</label>
         <div class="scope-switch" role="group" aria-label="範圍類型">
           <button type="button" class="scope-pill active" id="scopeCountyBtn" data-scope-mode="county">縣市</button>
@@ -3051,13 +3077,19 @@ const scopeHint=document.querySelector("#scopeHint");
 function updateScopeHint(){
   if(!scopeHint)return;
   const active=!!beginnerModeInput?.checked && scopeMode==="county";
+  const countySelect=document.querySelector("#countyFilter");
+  if(countySelect){
+    countySelect.disabled=active;
+    countySelect.classList.toggle("scope-select-locked",active);
+    countySelect.setAttribute("aria-disabled",active?"true":"false");
+  }
   if(active){
     scopeHint.style.display="flex";
     scopeHint.innerHTML=`
       <span class="scope-hint-icon" aria-hidden="true">i</span>
       <span class="scope-hint-copy">
-        <span class="scope-hint-title">Beginner：縣市範圍僅限全台</span>
-        <span class="scope-hint-sub">想縮小範圍，請改用「區域」。</span>
+        <span class="scope-hint-title">Beginner：不適用於單一縣市</span>
+        <span class="scope-hint-sub">請選擇「區域」或「全台」。</span>
       </span>
     `;
   }else{
@@ -3126,7 +3158,7 @@ scopeCountyBtn.onclick=()=>{
   setScopeMode("county",{selectedValue:beginnerLock?"ALL":previousCountySelection});
   handleScopeChange({
     resetView:true,
-    message:beginnerLock?"Beginner 模式下，縣市範圍只能使用「全台」；若想縮小範圍，請改選「區域」。":""
+    message:beginnerLock?"Beginner 不適用於單一縣市，請選擇「區域」或「全台」。":""
   });
 };
 scopeRegionBtn.onclick=()=>{
@@ -3149,7 +3181,7 @@ document.querySelector("#countyFilter").onchange=()=>{
     select.value="ALL";
     handleScopeChange({
       resetView:true,
-      message:"Beginner 模式下，縣市範圍只能使用「全台」；若想縮小範圍，請改選「區域」。"
+      message:"Beginner 不適用於單一縣市，請選擇「區域」或「全台」。"
     });
     return;
   }
@@ -3424,17 +3456,22 @@ const TUTORIAL_STEPS=[
         <div class="tutorial-mini-card"><b>Learn</b><span>直接看地名，自由探索與記憶位置。</span></div>
         <div class="tutorial-mini-card"><b>Find</b><span>看到地名後，在地圖上點出位置。</span></div>
         <div class="tutorial-mini-card"><b>Reverse</b><span>看到位置後，從選項中選出地名。</span></div>
-        <div class="tutorial-mini-card"><b>Weak</b><span>優先複習還不熟、曾經答錯的地方。</span></div>
+        <div class="tutorial-mini-card"><b>Weak</b><span>只複習你曾經答錯過的行政區，弱項會優先出題。</span></div>
       </div>
     `
   },
   {
-    title:"先選你的訓練範圍",
-    target:"#countyFilter",
+    title:"選擇縣市或區域範圍",
+    target:"#scopeControl",
     mobilePanel:"settings",
     body:`
-      預設是 <strong>全台</strong>。也可以只選一個縣市集中練習。
-      剛開始背行政區時，建議先分縣市熟悉，再回到全台混合測驗。
+      範圍分成兩種，兩者一次只能選一種：
+      <div class="tutorial-mini-grid">
+        <div class="tutorial-mini-card"><b>縣市</b><span>全台，或單獨選一個縣市集中練習。</span></div>
+        <div class="tutorial-mini-card"><b>區域</b><span>全台、北部、中部、南部、東部或離島。</span></div>
+      </div>
+      <br><strong>Beginner 不適用於單一縣市</strong>，開啟 Beginner 時請使用
+      <strong>全台</strong>或改選<strong>區域</strong>。
     `
   },
   {
@@ -3444,11 +3481,12 @@ const TUTORIAL_STEPS=[
     body:`
       <div class="tutorial-mini-grid">
         <div class="tutorial-mini-card"><b>Normal</b><span>答對保留綠色；答錯的正確位置保留紅色。</span></div>
-        <div class="tutorial-mini-card"><b>Beginner</b><span>只要點到正確縣市內，就算答對。</span></div>
+        <div class="tutorial-mini-card"><b>Beginner</b><span>點到正確縣市就算答對，並用綠色顯示真正答案的鄉鎮市區。</span></div>
         <div class="tutorial-mini-card"><b>Hard</b><span>答對後不保留綠色提示。</span></div>
         <div class="tutorial-mini-card"><b>Extreme</b><span>答對、答錯後都不保留顏色提示。</span></div>
       </div>
-      再按一次已選取的難度，就會回到 Normal。
+      <br>Beginner 請搭配 <strong>全台</strong>或<strong>區域</strong>使用；
+      單一縣市範圍會被停用。再按一次已選取的難度，就會回到 Normal。
     `
   },
   {
@@ -3494,8 +3532,9 @@ const TUTORIAL_STEPS=[
     mobilePanel:"settings",
     body:`
       建議第一次使用先從 <strong>Learn</strong> 看熟輪廓，
-      再用 <strong>Beginner + Find</strong> 練到能辨認縣市，
-      最後回到 Normal、Hard 或 Extreme 挑戰精確位置。<br><br>
+      再用 <strong>Beginner + 區域 + Find</strong> 熟悉各區縣市，接著挑戰
+      <strong>Beginner + 全台</strong>。最後回到 Normal、Hard 或 Extreme
+      挑戰精確的鄉鎮市區位置。<br><br>
       完成後背景就會解鎖，可以開始訓練。之後隨時都能按
       <strong>「新手教學」</strong>重新播放。
     `
