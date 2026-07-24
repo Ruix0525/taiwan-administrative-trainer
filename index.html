@@ -145,7 +145,7 @@
     }
     .difficulty-switch{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:repeat(3,minmax(0,1fr));
       gap:7px;
       padding:4px;
       border:1px solid var(--line);
@@ -195,6 +195,11 @@
       background:#7f1d1d;
       color:#fff;
       border-color:#7f1d1d;
+    }
+    .difficulty-pill[data-difficulty="beginner"].active{
+      background:#166534;
+      color:#fff;
+      border-color:#166534;
     }
     .difficulty-name{
       font-size:14px;
@@ -912,15 +917,20 @@
           <div class="difficulty-block">
             <div class="difficulty-label">Difficulty</div>
             <div class="difficulty-switch" role="group" aria-label="Difficulty mode">
+              <button type="button" class="difficulty-pill" id="beginnerModeBtn" data-difficulty="beginner">
+                <span class="difficulty-name">Beginner</span>
+                <span class="difficulty-desc">同縣市即算答對</span>
+              </button>
               <button type="button" class="difficulty-pill" id="hardModeBtn" data-difficulty="hard">
                 <span class="difficulty-name">Hard</span>
-                <span class="difficulty-desc">不保留答對區域</span>
+                <span class="difficulty-desc">答對不留綠色</span>
               </button>
               <button type="button" class="difficulty-pill" id="extremeModeBtn" data-difficulty="extreme">
                 <span class="difficulty-name">Extreme</span>
-                <span class="difficulty-desc">Hard + 不提示錯題位置</span>
+                <span class="difficulty-desc">答對／答錯皆不留色</span>
               </button>
             </div>
+            <input type="checkbox" id="beginnerMode" hidden>
             <input type="checkbox" id="hardMode" hidden>
             <input type="checkbox" id="extremeMode" hidden>
           </div>
@@ -2082,14 +2092,26 @@ function handleTownClick(d,event){
   }
   if(mode==="reverse"||!examActive||answered)return;
 
-  const ok=sKey(d)===sKey(current), sec=(performance.now()-currentStart)/1000;
-  const hard=document.querySelector("#hardMode").checked;
+  const beginner=document.querySelector("#beginnerMode")?.checked;
+  const exactMatch=sKey(d)===sKey(current);
+  const sameCounty=
+    (d.properties?.COUNTYNAME||"")===
+    (current.properties?.COUNTYNAME||"");
+  const ok=beginner ? sameCounty : exactMatch;
+  const sec=(performance.now()-currentStart)/1000;
 
   if(ok){
     answered=true;session.correct++;session.times.push(sec);saveStat(current,true,sec);
-    correctHistory.add(sKey(current));
+
+    // Beginner mode tests county recognition rather than exact township position.
+    // Keep the exact small region the user clicked green, as requested.
+    correctHistory.add(sKey(beginner ? d : current));
     flashFeature(d,"correct");
-    document.querySelector("#feedback").textContent=`✅ ${examAdministrativeName(current)} · ${sec.toFixed(1)}s`;
+
+    document.querySelector("#feedback").textContent=beginner
+      ? `✅ 縣市正確：${adminCountyName(current)} · ${sec.toFixed(1)}s`
+      : `✅ ${examAdministrativeName(current)} · ${sec.toFixed(1)}s`;
+
     updateSession();
     scheduleExamTask(nextQuestion,750);
   }else{
@@ -2424,40 +2446,46 @@ document.querySelector("#mobileExamBtn").onclick=()=>{
   else startExam();
 };
 
+const beginnerModeInput=document.querySelector("#beginnerMode");
 const hardModeInput=document.querySelector("#hardMode");
 const extremeModeInput=document.querySelector("#extremeMode");
+const beginnerModeBtn=document.querySelector("#beginnerModeBtn");
 const hardModeBtn=document.querySelector("#hardModeBtn");
 const extremeModeBtn=document.querySelector("#extremeModeBtn");
 
 function refreshDifficultyUI(){
+  beginnerModeBtn?.classList.toggle("active",!!beginnerModeInput?.checked);
   hardModeBtn?.classList.toggle("active",!!hardModeInput?.checked);
   extremeModeBtn?.classList.toggle("active",!!extremeModeInput?.checked);
 
+  beginnerModeBtn?.setAttribute("aria-pressed",beginnerModeInput?.checked?"true":"false");
   hardModeBtn?.setAttribute("aria-pressed",hardModeInput?.checked?"true":"false");
   extremeModeBtn?.setAttribute("aria-pressed",extremeModeInput?.checked?"true":"false");
 }
 
 function setDifficultyMode(nextMode){
+  const beginnerWasOn=!!beginnerModeInput.checked;
   const hardWasOn=!!hardModeInput.checked;
   const extremeWasOn=!!extremeModeInput.checked;
 
-  if(nextMode==="hard"){
-    // Clicking the already-selected option returns to Normal.
+  // All three difficulty assists/challenges are mutually exclusive.
+  beginnerModeInput.checked=false;
+  hardModeInput.checked=false;
+  extremeModeInput.checked=false;
+
+  if(nextMode==="beginner"){
+    beginnerModeInput.checked=!beginnerWasOn;
+  }else if(nextMode==="hard"){
     hardModeInput.checked=!hardWasOn;
-    extremeModeInput.checked=false;
   }else if(nextMode==="extreme"){
-    // Extreme replaces Hard rather than stacking a second checkbox.
     extremeModeInput.checked=!extremeWasOn;
-    hardModeInput.checked=false;
-  }else{
-    hardModeInput.checked=false;
-    extremeModeInput.checked=false;
   }
 
   refreshDifficultyUI();
   applyPersistentMarks();
 }
 
+beginnerModeBtn.onclick=()=>setDifficultyMode("beginner");
 hardModeBtn.onclick=()=>setDifficultyMode("hard");
 extremeModeBtn.onclick=()=>setDifficultyMode("extreme");
 refreshDifficultyUI();
