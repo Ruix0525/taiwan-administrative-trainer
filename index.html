@@ -10,7 +10,19 @@
   <title>台灣行政區訓練</title>
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
-  <style>
+  <script>
+(function(){
+  try{
+    const key="taiwan-admin-trainer-theme";
+    const saved=localStorage.getItem(key);
+    const theme=(saved==="dark"||saved==="light")
+      ? saved
+      : (window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    document.documentElement.dataset.theme=theme;
+  }catch(_){}
+})();
+</script>
+<style>
     :root{
       --bg:#f4f5f7;--panel:#ffffff;--ink:#15181d;--muted:#6b7280;--line:#d9dde4;
       --accent:#111827;--good:#1f9d55;--bad:#dc2626;--warn:#d97706;--soft:#eef1f5;
@@ -552,7 +564,295 @@
       .mobile-bottom-nav{left:50%;right:auto;width:min(520px,68vw);transform:translateX(-50%)}
       .mobile-exam-action{left:50%;right:auto;width:min(500px,64vw);transform:translateX(-50%)}
     }
-  </style>
+  
+  /* =========================================================
+     THEME SYSTEM
+     ========================================================= */
+  :root{
+    --theme-bg:#f4f6f8;
+    --theme-surface:#ffffff;
+    --theme-surface-2:#f8fafc;
+    --theme-surface-3:#eef2f6;
+    --theme-text:#101828;
+    --theme-muted:#667085;
+    --theme-line:#d0d5dd;
+    --theme-line-soft:#e4e7ec;
+    --theme-map:#f8fafc;
+    --theme-map-alt:#eef2f7;
+    --theme-town:#ffffff;
+    --theme-town-hover:#eef4fb;
+    --theme-border:#182230;
+    --theme-border-soft:#cbd5e1;
+    --theme-shadow:rgba(15,23,42,.08);
+  }
+
+  html[data-theme="dark"]{
+    color-scheme:dark;
+    --theme-bg:#0b111b;
+    --theme-surface:#111827;
+    --theme-surface-2:#161f2e;
+    --theme-surface-3:#1d2939;
+    --theme-text:#f8fafc;
+    --theme-muted:#a7b0c0;
+    --theme-line:#344054;
+    --theme-line-soft:#273449;
+    --theme-map:#101827;
+    --theme-map-alt:#0d1522;
+    --theme-town:#172235;
+    --theme-town-hover:#23334c;
+    --theme-border:#d8e0ea;
+    --theme-border-soft:#526078;
+    --theme-shadow:rgba(0,0,0,.34);
+  }
+
+  body{
+    background:var(--theme-bg)!important;
+    color:var(--theme-text);
+    transition:background .2s ease,color .2s ease;
+  }
+
+  .app,
+  .layout{
+    background:var(--theme-bg);
+  }
+
+  .topbar{
+    background:var(--theme-bg)!important;
+    border-color:var(--theme-line)!important;
+  }
+
+  .brand,
+  .question,
+  .mobile-drawer-title,
+  .card .big,
+  .stat .value,
+  #currentName,
+  #masteryCount{
+    color:var(--theme-text)!important;
+  }
+
+  .sub,
+  .author-credit,
+  .section-title,
+  .quiz-label,
+  .hint,
+  .feedback,
+  .mobile-drawer-sub,
+  .stat .label,
+  .difficulty-label,
+  label,
+  .muted{
+    color:var(--theme-muted)!important;
+  }
+
+  .panel,
+  .sidebar,
+  .right,
+  .quiz-card,
+  .card,
+  .stat,
+  .mobile-bottom-nav,
+  .mobile-drawer-head,
+  .mobile-settings-actions .btn{
+    background:var(--theme-surface)!important;
+    border-color:var(--theme-line)!important;
+    color:var(--theme-text)!important;
+  }
+
+  .map-panel{
+    background:linear-gradient(var(--theme-map),var(--theme-map-alt))!important;
+    border-color:var(--theme-line)!important;
+  }
+
+  #map{
+    background:linear-gradient(var(--theme-map),var(--theme-map-alt))!important;
+  }
+
+  button,
+  .btn,
+  select,
+  .option-select,
+  .answer-btn,
+  .mobile-icon-btn,
+  .mobile-progress-btn,
+  .mobile-close-btn,
+  .zoom button{
+    border-color:var(--theme-line)!important;
+  }
+
+  select,
+  .option-select{
+    background:var(--theme-surface)!important;
+    color:var(--theme-text)!important;
+  }
+
+  .btn,
+  .answer-btn,
+  .mobile-icon-btn,
+  .mobile-progress-btn,
+  .mobile-close-btn,
+  .zoom button{
+    background:var(--theme-surface)!important;
+    color:var(--theme-text)!important;
+  }
+
+  .btn:hover,
+  .answer-btn:hover,
+  .zoom button:hover{
+    background:var(--theme-surface-2)!important;
+  }
+
+  .mode-btn{
+    background:var(--theme-surface)!important;
+    border-color:var(--theme-line)!important;
+    color:var(--theme-text)!important;
+  }
+
+  .mode-btn.active{
+    background:#101828!important;
+    color:#fff!important;
+    border-color:#101828!important;
+  }
+
+  html[data-theme="dark"] .mode-btn.active{
+    background:#e5e7eb!important;
+    color:#111827!important;
+    border-color:#e5e7eb!important;
+  }
+
+  .difficulty-switch{
+    background:var(--theme-surface-3)!important;
+    border-color:var(--theme-line)!important;
+  }
+
+  .difficulty-pill{
+    color:var(--theme-muted)!important;
+  }
+
+  .difficulty-pill:hover{
+    background:var(--theme-surface-2)!important;
+    color:var(--theme-text)!important;
+  }
+
+  .difficulty-pill.active{
+    color:#fff!important;
+  }
+
+  .difficulty-pill[data-difficulty="hard"].active{
+    background:#101828!important;
+    border-color:#101828!important;
+    color:#fff!important;
+  }
+
+  html[data-theme="dark"] .difficulty-pill[data-difficulty="hard"].active{
+    background:#475467!important;
+    border-color:#667085!important;
+  }
+
+  .difficulty-pill[data-difficulty="extreme"].active{
+    background:#7f1d1d!important;
+    border-color:#991b1b!important;
+    color:#fff!important;
+  }
+
+  .theme-toggle-btn{
+    min-height:44px;
+    padding:0 14px;
+    border:1px solid var(--theme-line);
+    border-radius:13px;
+    background:var(--theme-surface);
+    color:var(--theme-text);
+    font-weight:800;
+    font-size:13px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    cursor:pointer;
+    box-shadow:0 1px 2px var(--theme-shadow);
+    transition:background .16s ease,border-color .16s ease,transform .12s ease;
+  }
+
+  .theme-toggle-btn:hover{
+    background:var(--theme-surface-2);
+  }
+
+  .theme-toggle-btn:active{transform:scale(.98)}
+  .theme-icon{font-size:17px;line-height:1}
+
+  .theme-mobile-btn{
+    display:flex!important;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+  }
+
+  /* Map polygons and administrative boundaries */
+  html[data-theme="dark"] .town{
+    fill:var(--theme-town)!important;
+    stroke:var(--theme-border-soft)!important;
+  }
+
+  html[data-theme="dark"] .town:hover{
+    fill:var(--theme-town-hover)!important;
+  }
+
+  html[data-theme="dark"] .county-border,
+  html[data-theme="dark"] .county-outline{
+    stroke:var(--theme-border)!important;
+  }
+
+  html[data-theme="dark"] .town.correct{fill:#27724b!important}
+  html[data-theme="dark"] .town.wrong{fill:#9f3a45!important}
+  html[data-theme="dark"] .town.target{fill:#a87817!important}
+  html[data-theme="dark"] .town.missed{fill:#b8404b!important}
+
+  /* Preserve selected / Learn highlight readability in dark mode */
+  html[data-theme="dark"] .town.selected{
+    fill:#a87817!important;
+  }
+
+  /* SVG labels */
+  html[data-theme="dark"] .town-label,
+  html[data-theme="dark"] .map-label,
+  html[data-theme="dark"] text.label{
+    fill:#f8fafc!important;
+    stroke:rgba(10,15,25,.88)!important;
+  }
+
+  html[data-theme="dark"] svg text{
+    color:#f8fafc;
+  }
+
+  /* Progress / weak-area surfaces */
+  html[data-theme="dark"] .weak-item,
+  html[data-theme="dark"] .weak-row{
+    background:var(--theme-surface-3)!important;
+    color:var(--theme-text)!important;
+  }
+
+  html[data-theme="dark"] .progress-track{
+    background:#273449!important;
+  }
+
+  /* Mobile overlays and sheets */
+  html[data-theme="dark"] .mobile-overlay{
+    background:rgba(0,0,0,.58);
+  }
+
+  @media (max-width:760px){
+    .topbar{
+      background:color-mix(in srgb,var(--theme-bg) 94%,transparent)!important;
+    }
+    .mobile-bottom-nav{
+      background:color-mix(in srgb,var(--theme-surface) 95%,transparent)!important;
+    }
+    .right .mobile-drawer-head{
+      background:var(--theme-surface)!important;
+    }
+  }
+
+</style>
   <!-- Administrative English names:
        Township/District = official TOWNENG field from MOI/NLSC administrative boundary data.
        County/City = official customary government English names.
@@ -576,6 +876,10 @@
       </button>
     </div>
     <div class="top-actions">
+      <button class="theme-toggle-btn" id="themeToggleBtn" type="button" aria-label="切換深色或淺色模式">
+        <span class="theme-icon" id="themeIcon">☾</span>
+        <span id="themeToggleText">深色模式</span>
+      </button>
       <button class="btn" id="adminNameLangBtn" title="切換行政區名稱語言">行政區英文</button>
       <button class="btn panel-toggle" id="toggleLeft">隱藏訓練面板</button>
       <button class="btn panel-toggle" id="toggleRight">隱藏學習進度</button>
@@ -640,6 +944,10 @@
       </div>
 
       <div class="mobile-settings-actions">
+        <button class="btn theme-mobile-btn" id="mobileThemeBtn">
+          <span id="mobileThemeIcon">☾</span>
+          <span id="mobileThemeText">深色模式</span>
+        </button>
         <button class="btn" id="mobileLangBtn">行政區英文</button>
         <button class="btn" id="mobileResetViewBtn">重設地圖</button>
         <button class="btn danger-soft" id="mobileResetStatsBtn">清除進度</button>
@@ -1988,6 +2296,51 @@ document.querySelector("#adminNameLangBtn").onclick=()=>{
   refreshAdministrativeNameLanguage();
 };
 
+
+const THEME_STORE_KEY="taiwan-admin-trainer-theme";
+
+function getSavedTheme(){
+  const saved=localStorage.getItem(THEME_STORE_KEY);
+  if(saved==="dark"||saved==="light")return saved;
+  return window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+}
+
+function refreshThemeControls(){
+  const isDark=document.documentElement.dataset.theme==="dark";
+
+  const icon=document.querySelector("#themeIcon");
+  const text=document.querySelector("#themeToggleText");
+  const mobileIcon=document.querySelector("#mobileThemeIcon");
+  const mobileText=document.querySelector("#mobileThemeText");
+
+  if(icon)icon.textContent=isDark?"☀":"☾";
+  if(text)text.textContent=isDark?"淺色模式":"深色模式";
+  if(mobileIcon)mobileIcon.textContent=isDark?"☀":"☾";
+  if(mobileText)mobileText.textContent=isDark?"淺色模式":"深色模式";
+}
+
+function applyTheme(theme,{save=true}={}){
+  const next=theme==="dark"?"dark":"light";
+  document.documentElement.dataset.theme=next;
+  if(save)localStorage.setItem(THEME_STORE_KEY,next);
+  refreshThemeControls();
+
+  // Reapply map state so SVG classes/colors remain visually consistent.
+  if(typeof applyPersistentMarks==="function"){
+    try{ applyPersistentMarks(); }catch(_){}
+  }
+}
+
+function toggleTheme(){
+  const current=document.documentElement.dataset.theme==="dark"?"dark":"light";
+  applyTheme(current==="dark"?"light":"dark");
+}
+
+applyTheme(getSavedTheme(),{save:false});
+
 const settingsDrawer=document.querySelector("#settingsDrawer");
 const progressDrawer=document.querySelector("#progressDrawer");
 const mobileOverlay=document.querySelector("#mobileOverlay");
@@ -2003,6 +2356,9 @@ function openMobilePanel(panel){
   panel?.classList.add("mobile-open");
   mobileOverlay?.classList.add("open");
 }
+
+document.querySelector("#themeToggleBtn").onclick=toggleTheme;
+document.querySelector("#mobileThemeBtn").onclick=toggleTheme;
 
 document.querySelector("#mobileMenuBtn").onclick=()=>openMobilePanel(settingsDrawer);
 document.querySelector("#mobileProgressBtn").onclick=()=>openMobilePanel(progressDrawer);
