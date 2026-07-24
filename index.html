@@ -213,6 +213,36 @@
       opacity:.78;
       white-space:normal;
     }
+    .scope-switch{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:7px;
+      margin-bottom:6px;
+    }
+    .scope-pill{
+      appearance:none;
+      border:1px solid var(--line);
+      border-radius:12px;
+      min-height:40px;
+      padding:8px 10px;
+      background:var(--button);
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      cursor:pointer;
+      transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .12s ease;
+    }
+    .scope-pill:hover{
+      background:var(--button-hover);
+      color:var(--ink);
+    }
+    .scope-pill:active{transform:scale(.985)}
+    .scope-pill.active{
+      background:var(--button);
+      color:var(--ink);
+      border-color:var(--line);
+      box-shadow:0 2px 7px rgba(16,24,40,.08);
+    }
 
 
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -542,7 +572,7 @@
     .exam-counter{
       position:absolute;top:8px;right:12px;display:none;
       padding:3px 8px;border:1px solid var(--line);border-radius:999px;
-      background:var(--soft);color:var(--muted);font-size:11px;line-height:1;
+      background:var(--soft);color:var(--muted);font-size:13px;line-height:1;
       font-weight:850;letter-spacing:.02em;z-index:2
     }
     .exam-counter.visible{display:block}
@@ -583,13 +613,13 @@
       min-height:54px;
     }
 
-    .map-panel.reverse-mode .quiz-card{padding:9px 16px 11px}
-    .map-panel.reverse-mode .quiz-label{font-size:12px;letter-spacing:.08em}
-    .map-panel.reverse-mode .question{font-size:27px;line-height:1.12;margin-top:2px}
-    .map-panel.reverse-mode .hint{font-size:14px;margin-top:5px;font-weight:750}
-    .map-panel.reverse-mode .answers{gap:8px;margin-top:11px!important}
+    .map-panel.reverse-mode .quiz-card{padding:11px 18px 14px}
+    .map-panel.reverse-mode .quiz-label{font-size:15px;letter-spacing:.09em}
+    .map-panel.reverse-mode .question{font-size:32px;line-height:1.1;margin-top:3px}
+    .map-panel.reverse-mode .hint{font-size:17px;margin-top:6px;font-weight:800}
+    .map-panel.reverse-mode .answers{gap:10px;margin-top:13px!important}
     .map-panel.reverse-mode .answer-btn{
-      font-size:15px;padding:10px 12px;font-weight:850;min-height:42px
+      font-size:18px;padding:12px 14px;font-weight:850;min-height:48px
     }
     .zoom{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:4}
     .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--button);color:var(--ink);font-weight:900;cursor:pointer}
@@ -913,14 +943,14 @@
         margin-top:7px!important;
       }
       .answer-btn{font-size:12px;padding:9px 7px}
-      .map-panel.reverse-mode .quiz-card{padding:8px 10px 10px}
-      .map-panel.reverse-mode .quiz-label{font-size:11px}
-      .map-panel.reverse-mode .question{font-size:23px;line-height:1.12}
-      .map-panel.reverse-mode .hint{font-size:13px;margin-top:4px}
+      .map-panel.reverse-mode .quiz-card{padding:10px 11px 12px}
+      .map-panel.reverse-mode .quiz-label{font-size:13px}
+      .map-panel.reverse-mode .question{font-size:27px;line-height:1.1}
+      .map-panel.reverse-mode .hint{font-size:15px;margin-top:5px}
       .map-panel.reverse-mode .answer-btn{
-        font-size:14px;padding:10px 8px;min-height:42px
+        font-size:16px;padding:11px 9px;min-height:46px
       }
-      .exam-counter{top:7px;right:8px;font-size:10px;padding:3px 7px}
+      .exam-counter{top:7px;right:8px;font-size:12px;padding:4px 8px}
 
       .zoom{
         right:10px;
@@ -1212,6 +1242,10 @@
 
       <div class="control">
         <label>範圍</label>
+        <div class="scope-switch" role="group" aria-label="範圍類型">
+          <button type="button" class="scope-pill active" id="scopeCountyBtn" data-scope-mode="county">縣市</button>
+          <button type="button" class="scope-pill" id="scopeRegionBtn" data-scope-mode="region">區域</button>
+        </div>
         <select id="countyFilter"><option value="ALL">全台</option></select>
       </div>
 
@@ -1570,6 +1604,16 @@ const DATA_URLS = [
 let topo, towns=[], counties=[], current=null, currentStart=0, mode="learn", answered=false;
 let townNameCounts=new Map();
 
+const REGION_DEFS=[
+  {id:"ALL", zh:"全台", en:"All Taiwan", counties:null},
+  {id:"north", zh:"北部", en:"North", counties:["基隆市","臺北市","新北市","桃園市","新竹市","新竹縣","宜蘭縣"]},
+  {id:"central", zh:"中部", en:"Central", counties:["苗栗縣","臺中市","彰化縣","南投縣","雲林縣"]},
+  {id:"south", zh:"南部", en:"South", counties:["嘉義市","嘉義縣","臺南市","高雄市","屏東縣"]},
+  {id:"east", zh:"東部", en:"East", counties:["花蓮縣","臺東縣"]},
+  {id:"islands", zh:"離島", en:"Offshore Islands", counties:["澎湖縣","金門縣","連江縣"]}
+];
+const REGION_MAP=new Map(REGION_DEFS.map(region=>[region.id,region]));
+
 const MAP_W=1000;
 const MAP_H=1200;
 const MAP_PAD=34;
@@ -1581,6 +1625,9 @@ let townLayer=null;
 let countyLayer=null;
 let countyTransforms=new Map();
 let mapBuilt=false;
+let scopeMode="county";
+let previousCountySelection="ALL";
+let previousRegionSelection="ALL";
 let activeScope="ALL";
 let activeScopeTransform=d3.zoomIdentity;
 let countyScopedView=false;
@@ -1745,13 +1792,23 @@ function mastery(f){
   if(n>=1&&acc>=.5)return "yellow";
   return "red";
 }
-function eligible(){
-  const c=document.querySelector("#countyFilter").value;
-  let a=towns;
+function featureMatchesCurrentScope(feature,scopeValue=currentScopeName(),kind=scopeMode){
+  if(scopeValue==="ALL")return true;
 
-  if(c!=="ALL"){
-    a=a.filter(x=>(x.properties.COUNTYNAME||"")===c);
-  }
+  const countyName=(feature?.properties?.COUNTYNAME)||"";
+
+  if(kind==="county")return countyName===scopeValue;
+
+  const region=REGION_MAP.get(scopeValue);
+  return !!region?.counties?.includes(countyName);
+}
+
+function featuresInCurrentScope(source=towns){
+  return source.filter(feature=>featureMatchesCurrentScope(feature));
+}
+
+function eligible(){
+  let a=featuresInCurrentScope(towns);
 
   if(mode==="weak"){
     // Weak mode only includes places the user has actually answered incorrectly.
@@ -1771,12 +1828,16 @@ function weightedPick(arr){
   return arr[arr.length-1];
 }
 function visibleTowns(){
-  const c=document.querySelector("#countyFilter").value;
-  return c==="ALL" ? towns : towns.filter(x=>(x.properties.COUNTYNAME||"")===c);
+  return featuresInCurrentScope(towns);
 }
 
 function currentScopeName(){
   return document.querySelector("#countyFilter").value||"ALL";
+}
+
+function currentScopeTransformKey(){
+  const scopeValue=currentScopeName();
+  return scopeValue==="ALL" ? "ALL" : `${scopeMode}:${scopeValue}`;
 }
 
 function applyPersistentCorrect(){
@@ -1811,8 +1872,9 @@ function applyPersistentMarks(){
   applyPersistentMissed();
 }
 
-function countyTransformFor(name){
-  return countyTransforms.get(name)||d3.zoomIdentity;
+function countyTransformFor(name,kind=scopeMode){
+  if(name==="ALL")return countyTransforms.get("ALL")||d3.zoomIdentity;
+  return countyTransforms.get(`${kind}:${name}`)||d3.zoomIdentity;
 }
 
 function computeFitTransform(bounds,padding=26){
@@ -1908,7 +1970,18 @@ function buildStaticMap(){
 
     const collection={type:"FeatureCollection",features};
     countyTransforms.set(
-      countyName,
+      `county:${countyName}`,
+      computeFitTransform(staticPath.bounds(collection),24)
+    );
+  }
+
+  for(const region of REGION_DEFS.filter(item=>item.id!=="ALL")){
+    const features=towns.filter(f=>region.counties.includes(f.properties.COUNTYNAME));
+    if(!features.length)continue;
+
+    const collection={type:"FeatureCollection",features};
+    countyTransforms.set(
+      `region:${region.id}`,
       computeFitTransform(staticPath.bounds(collection),24)
     );
   }
@@ -1943,13 +2016,13 @@ function applyScopeVisibility(){
   townLayer
     .selectAll(".town")
     .style("display",d=>
-      !scoped || d.properties.COUNTYNAME===activeScope ? "" : "none"
+      !scoped || featureMatchesCurrentScope(d,activeScope) ? "" : "none"
     );
 
   labelG
     .selectAll("text")
     .style("display",d=>
-      mode==="learn" && (!scoped || d.properties.COUNTYNAME===activeScope)
+      mode==="learn" && (!scoped || featureMatchesCurrentScope(d,activeScope))
         ? ""
         : "none"
     );
@@ -1957,7 +2030,7 @@ function applyScopeVisibility(){
   countyLayer
     .selectAll(".county-border")
     .style("display",d=>
-      !scoped || d.properties.COUNTYNAME===activeScope ? "" : "none"
+      !scoped || featureMatchesCurrentScope(d,activeScope) ? "" : "none"
     );
 }
 
@@ -1988,7 +2061,7 @@ function applyMapState({resetView=false}={}){
   if(!mapBuilt)return;
 
   activeScope=currentScopeName();
-  activeScopeTransform=countyTransformFor(activeScope);
+  activeScopeTransform=countyTransformFor(activeScope,scopeMode);
 
   applyScopeVisibility();
   applyBorderMode();
@@ -2007,9 +2080,7 @@ function applyMapState({resetView=false}={}){
   }
 
   if(current){
-    const inScope=
-      activeScope==="ALL" ||
-      current.properties.COUNTYNAME===activeScope;
+    const inScope=featureMatchesCurrentScope(current,activeScope);
 
     if(inScope){
       if(mode==="reverse")highlightCurrent();
@@ -2070,15 +2141,24 @@ function labelIsNearViewport(
   );
 }
 
+function nodeMatchesActiveScope(node){
+  if(activeScope==="ALL")return true;
+
+  const countyName=node.getAttribute("data-county")||"";
+
+  if(scopeMode==="county")return countyName===activeScope;
+
+  const region=REGION_MAP.get(activeScope);
+  return !!region?.counties?.includes(countyName);
+}
+
 function updateLabelVisibility(k=1){
   if(mode!=="learn")return;
 
   const viewportBounds=currentMapViewportBounds();
 
   for(const node of labelNodes){
-    const sameScope=
-      activeScope==="ALL" ||
-      node.getAttribute("data-county")===activeScope;
+    const sameScope=nodeMatchesActiveScope(node);
 
     if(!sameScope){
       node.style.display="none";
@@ -2119,9 +2199,7 @@ function updateLabelLayout(){
   if(mode!=="learn")return;
 
   for(const node of labelNodes){
-    const sameScope=
-      activeScope==="ALL" ||
-      node.getAttribute("data-county")===activeScope;
+    const sameScope=nodeMatchesActiveScope(node);
 
     node.style.display=
       sameScope && node.getAttribute("data-fit-visible")==="1"
@@ -2626,21 +2704,82 @@ function refreshSide(){
     box.appendChild(div);
   });
 }
-function populateCounties(){
+function updateScopeModeUI(){
+  document.querySelector("#scopeCountyBtn")?.classList.toggle("active",scopeMode==="county");
+  document.querySelector("#scopeRegionBtn")?.classList.toggle("active",scopeMode==="region");
+}
+
+function populateScopeSelect(selectedValue=currentScopeName()){
+  const sel=document.querySelector("#countyFilter");
   const names=[...new Set(towns.map(f=>f.properties.COUNTYNAME).filter(Boolean))]
     .sort((a,b)=>a.localeCompare(b,"zh-Hant"));
 
-  const sel=document.querySelector("#countyFilter");
+  sel.innerHTML="";
 
-  for(const name of names){
+  const addOption=(value,zh,en)=>{
     const option=document.createElement("option");
-    option.value=name;
-    option.dataset.zh=name;
-    option.dataset.en=OFFICIAL_COUNTY_EN.get(name)||name;
-    option.textContent=name;
+    option.value=value;
+    option.dataset.zh=zh;
+    option.dataset.en=en;
+    option.textContent=adminNameLanguage==="en" ? en : zh;
     sel.appendChild(option);
+  };
+
+  if(scopeMode==="county"){
+    addOption("ALL","全台","All Taiwan");
+
+    if(!beginnerModeInput?.checked){
+      for(const name of names){
+        addOption(name,name,OFFICIAL_COUNTY_EN.get(name)||name);
+      }
+    }
+  }else{
+    for(const region of REGION_DEFS){
+      addOption(region.id,region.zh,region.en);
+    }
+  }
+
+  const validValues=new Set([...sel.options].map(option=>option.value));
+  const nextValue=validValues.has(selectedValue) ? selectedValue : "ALL";
+  sel.value=nextValue;
+
+  if(scopeMode==="county")previousCountySelection=nextValue;
+  else previousRegionSelection=nextValue;
+}
+
+function setScopeMode(nextMode,{selectedValue}={}){
+  if(nextMode!=="county" && nextMode!=="region")return;
+
+  if(scopeMode==="county")previousCountySelection=currentScopeName();
+  else previousRegionSelection=currentScopeName();
+
+  scopeMode=nextMode;
+  updateScopeModeUI();
+
+  const targetValue=selectedValue ?? (nextMode==="county" ? previousCountySelection : previousRegionSelection);
+  populateScopeSelect(targetValue);
+}
+
+function handleScopeChange({resetView=true,message=""}={}){
+  if(examActive)stopExam({restore:true});
+  current=null;
+  examQuestionPool=[];
+  examQuestionIndex=0;
+  examCompleted=false;
+  applyMapState({resetView});
+  if(mode==="learn")clearLearnSelection();
+  else showExamReadyState();
+
+  if(message){
+    const feedback=document.querySelector("#feedback");
+    feedback.textContent=message;
+    clearTimeout(handleScopeChange.noticeTimer);
+    handleScopeChange.noticeTimer=setTimeout(()=>{
+      if(feedback.textContent===message)feedback.textContent="";
+    },2600);
   }
 }
+handleScopeChange.noticeTimer=0;
 
 function refreshAdministrativeNameLanguage(){
   document.querySelector("#adminNameLangBtn").textContent=
@@ -2651,16 +2790,7 @@ function refreshAdministrativeNameLanguage(){
       adminNameLanguage==="zh"?"行政區英文":"行政區中文";
   }
 
-  const countySelect=document.querySelector("#countyFilter");
-  for(const option of countySelect.options){
-    if(option.value==="ALL"){
-      option.textContent="全台";
-    }else{
-      option.textContent=adminNameLanguage==="en"
-        ? (option.dataset.en||option.value)
-        : (option.dataset.zh||option.value);
-    }
-  }
+  populateScopeSelect(currentScopeName());
 
   if(mapBuilt && labelG){
     labelG.selectAll("text")
@@ -2741,7 +2871,7 @@ async function init(){
       }
     }
     if(!towns.length) throw new Error("找不到鄉鎮市區資料");
-    populateCounties();buildStaticMap();refreshSide();updateSession();setMode("learn");updateExamButtons();
+    populateScopeSelect("ALL");buildStaticMap();refreshSide();updateSession();setMode("learn");updateExamButtons();
     document.querySelector("#loading").style.display="none";
     maybeStartTutorial();
   }catch(e){
@@ -2829,6 +2959,8 @@ const extremeModeInput=document.querySelector("#extremeMode");
 const beginnerModeBtn=document.querySelector("#beginnerModeBtn");
 const hardModeBtn=document.querySelector("#hardModeBtn");
 const extremeModeBtn=document.querySelector("#extremeModeBtn");
+const scopeCountyBtn=document.querySelector("#scopeCountyBtn");
+const scopeRegionBtn=document.querySelector("#scopeRegionBtn");
 
 function refreshDifficultyUI(){
   beginnerModeBtn?.classList.toggle("active",!!beginnerModeInput?.checked);
@@ -2845,6 +2977,9 @@ function setDifficultyMode(nextMode){
   const hardWasOn=!!hardModeInput.checked;
   const extremeWasOn=!!extremeModeInput.checked;
 
+  if(scopeMode==="county")previousCountySelection=currentScopeName();
+  else previousRegionSelection=currentScopeName();
+
   // All three difficulty assists/challenges are mutually exclusive.
   beginnerModeInput.checked=false;
   hardModeInput.checked=false;
@@ -2859,13 +2994,38 @@ function setDifficultyMode(nextMode){
   }
 
   refreshDifficultyUI();
+
+  let scopeMessage="";
+  if(beginnerModeInput.checked){
+    if(scopeMode==="county"){
+      populateScopeSelect("ALL");
+      scopeMessage="Beginner 模式已切換為全台範圍；若想縮小範圍，可改選「區域」。";
+    }else{
+      populateScopeSelect(currentScopeName());
+    }
+  }else if(beginnerWasOn && scopeMode==="county") {
+    populateScopeSelect(previousCountySelection||"ALL");
+  }else{
+    populateScopeSelect(currentScopeName());
+  }
+
   applyPersistentMarks();
+  handleScopeChange({resetView:true,message:scopeMessage});
 }
 
 beginnerModeBtn.onclick=()=>setDifficultyMode("beginner");
 hardModeBtn.onclick=()=>setDifficultyMode("hard");
 extremeModeBtn.onclick=()=>setDifficultyMode("extreme");
+scopeCountyBtn.onclick=()=>{
+  setScopeMode("county",{selectedValue:beginnerModeInput.checked?"ALL":previousCountySelection});
+  handleScopeChange({resetView:true});
+};
+scopeRegionBtn.onclick=()=>{
+  setScopeMode("region",{selectedValue:previousRegionSelection});
+  handleScopeChange({resetView:true});
+};
 refreshDifficultyUI();
+updateScopeModeUI();
 
 document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
   setMode(b.dataset.mode);
@@ -2874,14 +3034,9 @@ document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
 document.querySelector("#startExamBtn").onclick=startExam;
 document.querySelector("#stopExamBtn").onclick=()=>stopExam({restore:true});
 document.querySelector("#countyFilter").onchange=()=>{
-  if(examActive)stopExam({restore:true});
-  current=null;
-  examQuestionPool=[];
-  examQuestionIndex=0;
-  examCompleted=false;
-  applyMapState({resetView:true});
-  if(mode==="learn")clearLearnSelection();
-  else showExamReadyState();
+  if(scopeMode==="county")previousCountySelection=currentScopeName();
+  else previousRegionSelection=currentScopeName();
+  handleScopeChange({resetView:true});
 };
 document.querySelector("#borderMode").onchange=()=>applyMapState({resetView:false});
 document.querySelector("#hardMode").onchange=()=>{clearMarks();};
