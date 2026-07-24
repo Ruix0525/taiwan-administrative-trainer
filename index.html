@@ -334,6 +334,95 @@
     .map-panel.reverse-mode .quiz-card{padding-bottom:7px}
     .zoom{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:4}
     .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--button);color:var(--ink);font-weight:900;cursor:pointer}
+    .focus-map-btn{
+      position:relative;
+      overflow:hidden;
+      transition:
+        transform .16s ease,
+        background-color .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+    }
+    .focus-map-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.08)}
+    .focus-map-btn:active{transform:scale(.94)}
+    .focus-map-btn.active{
+      background:var(--active);
+      color:var(--bg);
+      border-color:var(--active);
+    }
+    .focus-map-icon{
+      display:inline-block;
+      font-size:19px;
+      line-height:1;
+      transition:transform .32s cubic-bezier(.22,.8,.2,1);
+    }
+    .focus-map-btn.active .focus-map-icon{transform:rotate(180deg) scale(.92)}
+
+    /* Smooth administrative-language swap without changing typography. */
+    .labels,
+    #question,
+    #placeName,
+    #placeCounty,
+    #weakList{
+      transition:opacity .16s ease,transform .16s ease,filter .16s ease;
+    }
+    body.admin-language-switching .labels,
+    body.admin-language-switching #question,
+    body.admin-language-switching #placeName,
+    body.admin-language-switching #placeCounty,
+    body.admin-language-switching #weakList{
+      opacity:0;
+      filter:blur(1.5px);
+      transform:translateY(2px);
+    }
+    .language-flip{animation:languageFlip .32s cubic-bezier(.22,.8,.2,1)}
+    @keyframes languageFlip{
+      0%{transform:scale(1)}
+      45%{transform:scale(.94) rotateX(16deg)}
+      100%{transform:scale(1)}
+    }
+
+    /* Progress "turn to dust" clear animation. */
+    body.progress-vanishing .stat,
+    body.progress-vanishing .weak-item,
+    body.progress-vanishing .right .card,
+    body.progress-vanishing .progress > div{
+      animation:progressVanish .58s cubic-bezier(.22,.8,.2,1) forwards;
+    }
+    @keyframes progressVanish{
+      0%{opacity:1;filter:blur(0);transform:translate(0,0) scale(1)}
+      38%{opacity:.72;filter:blur(.4px);transform:translateY(-2px) scale(.995)}
+      100%{opacity:0;filter:blur(7px);transform:translate(12px,-9px) scale(.96)}
+    }
+    .clear-dust-layer{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:9999;
+      overflow:hidden;
+    }
+    .clear-dust-particle{
+      position:absolute;
+      width:var(--dust-size);
+      height:var(--dust-size);
+      border-radius:50%;
+      background:#98a2b3;
+      opacity:.72;
+      animation:dustAway var(--dust-time) cubic-bezier(.15,.7,.25,1) forwards;
+      animation-delay:var(--dust-delay);
+      will-change:transform,opacity,filter;
+    }
+    @keyframes dustAway{
+      0%{opacity:.78;transform:translate3d(0,0,0) scale(1);filter:blur(0)}
+      55%{opacity:.48}
+      100%{
+        opacity:0;
+        transform:translate3d(var(--dust-x),var(--dust-y),0) rotate(var(--dust-r)) scale(.18);
+        filter:blur(2px);
+      }
+    }
+    .btn.is-clearing{pointer-events:none;opacity:.72}
+
     .right{padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto;overscroll-behavior:contain}
     .card{border:1px solid var(--line);border-radius:14px;padding:13px}
     .big{font-size:22px;font-weight:900}
@@ -554,6 +643,7 @@
       .zoom button{
         width:42px;height:42px;border-radius:13px;font-size:21px;
       }
+      .focus-map-btn{display:none}
 
       /* Settings drawer */
       .sidebar,
@@ -869,8 +959,12 @@
       </div>
       <svg id="map"></svg>
       <div class="zoom">
-        <button id="zoomIn">＋</button>
-        <button id="zoomOut">−</button>
+        <button id="focusMapBtn" class="focus-map-btn" type="button"
+          aria-label="專注地圖" title="專注地圖">
+          <span class="focus-map-icon" aria-hidden="true">⤢</span>
+        </button>
+        <button id="zoomIn" aria-label="放大">＋</button>
+        <button id="zoomOut" aria-label="縮小">−</button>
       </div>
     </main>
 
@@ -2260,9 +2354,34 @@ async function init(){
        <small>版本：v3.3 PRE-RENDER</small>`;
   }
 }
+let adminLanguageAnimating=false;
 document.querySelector("#adminNameLangBtn").onclick=()=>{
-  adminNameLanguage=adminNameLanguage==="zh"?"en":"zh";
-  refreshAdministrativeNameLanguage();
+  if(adminLanguageAnimating)return;
+  adminLanguageAnimating=true;
+
+  const desktopBtn=document.querySelector("#adminNameLangBtn");
+  const mobileBtn=document.querySelector("#mobileLangBtn");
+
+  desktopBtn?.classList.add("language-flip");
+  mobileBtn?.classList.add("language-flip");
+  document.body.classList.add("admin-language-switching");
+
+  setTimeout(()=>{
+    adminNameLanguage=adminNameLanguage==="zh"?"en":"zh";
+    refreshAdministrativeNameLanguage();
+
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        document.body.classList.remove("admin-language-switching");
+      });
+    });
+
+    setTimeout(()=>{
+      desktopBtn?.classList.remove("language-flip");
+      mobileBtn?.classList.remove("language-flip");
+      adminLanguageAnimating=false;
+    },210);
+  },125);
 };
 
 const settingsDrawer=document.querySelector("#settingsDrawer");
@@ -2371,10 +2490,10 @@ function refreshPanelButtons(){
   document.querySelector("#toggleRight").classList.toggle("active",rightHidden);
 }
 let panelTransitionTimer=0;
-function togglePanel(className){
-  layoutEl.classList.toggle(className);
-  refreshPanelButtons();
+let mapFocusActive=false;
+let mapFocusSnapshot={leftHidden:false,rightHidden:false};
 
+function refreshMapAfterPanelTransition(){
   clearTimeout(panelTransitionTimer);
   panelTransitionTimer=setTimeout(()=>{
     if(mode==="learn"){
@@ -2383,25 +2502,167 @@ function togglePanel(className){
     }
   },360);
 }
+
+function updateFocusMapButton(){
+  const button=document.querySelector("#focusMapBtn");
+  const icon=button?.querySelector(".focus-map-icon");
+  if(!button||!icon)return;
+
+  button.classList.toggle("active",mapFocusActive);
+  icon.textContent=mapFocusActive?"⤡":"⤢";
+  button.setAttribute("aria-label",mapFocusActive?"退出專注地圖":"專注地圖");
+  button.title=mapFocusActive?"退出專注地圖":"專注地圖";
+}
+
+function setMapFocus(active){
+  const next=!!active;
+  if(next===mapFocusActive)return;
+
+  if(next){
+    mapFocusSnapshot={
+      leftHidden:layoutEl.classList.contains("hide-left"),
+      rightHidden:layoutEl.classList.contains("hide-right")
+    };
+    mapFocusActive=true;
+    layoutEl.classList.add("hide-left","hide-right");
+  }else{
+    mapFocusActive=false;
+    layoutEl.classList.toggle("hide-left",!!mapFocusSnapshot.leftHidden);
+    layoutEl.classList.toggle("hide-right",!!mapFocusSnapshot.rightHidden);
+  }
+
+  refreshPanelButtons();
+  updateFocusMapButton();
+  refreshMapAfterPanelTransition();
+}
+
+function togglePanel(className){
+  // A manual panel change exits focus mode and keeps the user's new layout.
+  if(mapFocusActive){
+    mapFocusActive=false;
+    mapFocusSnapshot={leftHidden:false,rightHidden:false};
+    updateFocusMapButton();
+  }
+
+  layoutEl.classList.toggle(className);
+  refreshPanelButtons();
+  refreshMapAfterPanelTransition();
+}
+
 document.querySelector("#toggleLeft").onclick=()=>togglePanel("hide-left");
 document.querySelector("#toggleRight").onclick=()=>togglePanel("hide-right");
+document.querySelector("#focusMapBtn").onclick=()=>setMapFocus(!mapFocusActive);
 refreshPanelButtons();
+updateFocusMapButton();
 document.querySelector("#resetView").onclick=()=>applyMapState({resetView:true});
 document.querySelector("#zoomIn").onclick=()=>svg.transition().duration(160).call(zoom.scaleBy,1.8);
 document.querySelector("#zoomOut").onclick=()=>svg.transition().duration(160).call(zoom.scaleBy,1/1.8);
-document.querySelector("#resetStats").onclick=()=>{
-  if(confirm("確定清除所有學習進度與錯題紀錄？")){
-    if(examActive)stopExam({restore:true});
-    stats={};
-    correctHistory=new Set();
-    missedHistory=new Set();
-    localStorage.removeItem(STORE_KEY);
-    session={correct:0,wrong:0,times:[]};
-    updateSession();
-    refreshSide();
-    resetCurrentPlaceCard();
-    clearMarks();
+function hasAnyStoredProgress(){
+  return Object.values(stats||{}).some(item=>
+    ((item?.right||0)+(item?.wrong||0))>0
+  ) || correctHistory.size>0 || missedHistory.size>0 ||
+    session.correct>0 || session.wrong>0;
+}
+
+function spawnClearProgressDust(){
+  const layer=document.createElement("div");
+  layer.className="clear-dust-layer";
+  document.body.appendChild(layer);
+
+  const sources=[
+    document.querySelector(".sidebar"),
+    document.querySelector(".right")
+  ].filter(Boolean);
+
+  for(const source of sources){
+    const rect=source.getBoundingClientRect();
+    if(rect.width<=0||rect.height<=0)continue;
+
+    const count=Math.max(18,Math.round((rect.width*rect.height)/16000));
+
+    for(let i=0;i<count;i++){
+      const particle=document.createElement("span");
+      particle.className="clear-dust-particle";
+
+      const x=rect.left+Math.random()*rect.width;
+      const y=rect.top+Math.random()*rect.height;
+      const dx=(Math.random()*.75+.2)*70;
+      const dy=-(Math.random()*.8+.25)*80+(Math.random()-.5)*24;
+      const size=(Math.random()*4+2).toFixed(1);
+      const time=(Math.random()*.26+.52).toFixed(2);
+      const delay=(Math.random()*.16).toFixed(2);
+      const rotate=((Math.random()-.5)*280).toFixed(0);
+
+      particle.style.left=`${x}px`;
+      particle.style.top=`${y}px`;
+      particle.style.setProperty("--dust-x",`${dx}px`);
+      particle.style.setProperty("--dust-y",`${dy}px`);
+      particle.style.setProperty("--dust-r",`${rotate}deg`);
+      particle.style.setProperty("--dust-size",`${size}px`);
+      particle.style.setProperty("--dust-time",`${time}s`);
+      particle.style.setProperty("--dust-delay",`${delay}s`);
+
+      layer.appendChild(particle);
+    }
   }
+
+  setTimeout(()=>layer.remove(),950);
+}
+
+function wait(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+async function animateProgressClear(){
+  const resetButtons=[
+    document.querySelector("#resetStats"),
+    document.querySelector("#mobileResetStatsBtn")
+  ].filter(Boolean);
+
+  resetButtons.forEach(button=>{
+    button.classList.add("is-clearing");
+    button.dataset.originalText=button.textContent;
+    button.textContent="清除中…";
+  });
+
+  document.body.classList.add("progress-vanishing");
+  spawnClearProgressDust();
+
+  await wait(560);
+
+  document.body.classList.remove("progress-vanishing");
+
+  resetButtons.forEach(button=>{
+    button.classList.remove("is-clearing");
+    button.textContent=button.dataset.originalText||"清除進度";
+    delete button.dataset.originalText;
+  });
+}
+
+let clearingProgress=false;
+document.querySelector("#resetStats").onclick=async()=>{
+  if(clearingProgress)return;
+  if(!confirm("確定清除所有學習進度與錯題紀錄？"))return;
+
+  clearingProgress=true;
+  const hadProgress=hasAnyStoredProgress();
+
+  if(hadProgress){
+    await animateProgressClear();
+  }
+
+  if(examActive)stopExam({restore:true});
+  stats={};
+  correctHistory=new Set();
+  missedHistory=new Set();
+  localStorage.removeItem(STORE_KEY);
+  session={correct:0,wrong:0,times:[]};
+  updateSession();
+  refreshSide();
+  resetCurrentPlaceCard();
+  clearMarks();
+
+  clearingProgress=false;
 };
 // The SVG uses a fixed internal coordinate system.
  // Panel toggles and window resizing require no map rebuild.
