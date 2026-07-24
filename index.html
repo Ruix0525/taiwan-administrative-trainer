@@ -1,0 +1,1458 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="author" content="Ru1zly" />
+  <meta name="original-author" content="Ru1zly" />
+  <meta name="application-name" content="台灣行政區訓練" />
+  <!-- Original Author: Ru1zly | Build: TW-ADMIN-TRAINER-RU1ZLY-STABLE-001 | Signature: EF20BFAAD67B08C465626A7C0AA5111BC9F0785D7A9184D5991F43FE590151FF -->
+  <title>台灣行政區訓練</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+  <style>
+    :root{
+      --bg:#f4f5f7;--panel:#ffffff;--ink:#15181d;--muted:#6b7280;--line:#d9dde4;
+      --accent:#111827;--good:#1f9d55;--bad:#dc2626;--warn:#d97706;--soft:#eef1f5;
+      --shadow:0 10px 28px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;overflow:hidden}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",Arial,sans-serif;background:var(--bg);color:var(--ink);overscroll-behavior:none}
+    button,select,input{font:inherit}
+    .app{width:100%;height:100vh;margin:0;padding:14px 18px;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:12px;flex:0 0 auto}
+    .brand{font-weight:850;font-size:24px;letter-spacing:-.5px}
+    .brand-row{display:flex;align-items:baseline;gap:8px}
+    .author-credit{color:#98a2b3;font-size:11px;font-weight:650;letter-spacing:.02em}
+    .sub{color:var(--muted);font-size:13px;margin-top:2px}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:12px;cursor:pointer;font-weight:700}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.06)}
+    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn.danger{background:#fff1f2;color:#b91c1c;border-color:#fecdd3}
+    .layout{display:grid;grid-template-columns:310px minmax(0,1fr) 310px;grid-template-rows:minmax(0,1fr);gap:14px;flex:1 1 auto;min-height:0;height:100%}
+    .sidebar{grid-column:1;grid-row:1;min-width:0}
+    .map-panel{grid-column:2;grid-row:1;min-width:0}
+    .right{grid-column:3;grid-row:1;min-width:0}
+    .layout.hide-left{grid-template-columns:0 minmax(0,1fr) 310px}
+    .layout.hide-right{grid-template-columns:310px minmax(0,1fr) 0}
+    .layout.hide-left.hide-right{grid-template-columns:0 minmax(0,1fr) 0}
+    .layout.hide-left .sidebar{display:none}
+    .layout.hide-right .right{display:none}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;min-height:0}
+    .sidebar{padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto;overscroll-behavior:contain}
+    .section-title{font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .mode-btn{padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:800}
+    .mode-btn.active{background:#111827;color:white;border-color:#111827}
+    .control{display:flex;flex-direction:column;gap:6px}
+    label{font-size:12px;color:var(--muted);font-weight:800}
+    select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:#fff}
+    .option-select{padding:7px 9px;font-size:12px}
+    .checkrow{display:flex;align-items:center;gap:8px;font-size:14px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .stat{background:var(--soft);padding:11px;border-radius:12px}
+    .stat b{display:block;font-size:20px}
+    .stat span{font-size:11px;color:var(--muted)}
+    .map-panel{position:relative;height:100%;min-height:0;background:linear-gradient(#f8fafc,#eef2f7);display:flex;flex-direction:column;overscroll-behavior:contain}
+    #map{width:100%;height:100%;flex:1 1 auto;min-height:0;display:block;touch-action:none;overscroll-behavior:contain;user-select:none}
+    .town{fill:#ffffff;stroke:#98a2b3;stroke-width:.45;vector-effect:non-scaling-stroke;cursor:pointer;shape-rendering:geometricPrecision}
+    .labels text{
+      paint-order:normal;
+      stroke:none!important;
+      filter:none!important;
+      text-rendering:geometricPrecision;
+    }
+    .labels tspan{dominant-baseline:middle}
+    .is-zooming .town,.is-zooming .county-border{shape-rendering:optimizeSpeed}
+    .is-zooming .town:hover{fill:#fff}
+    .is-zooming .labels text{text-rendering:optimizeSpeed}
+    .map-panel{contain:layout paint;content-visibility:auto}
+    .town:hover{fill:#e8edf4}
+    .town.correct{fill:#8ee5a9!important}
+    .town.wrong{fill:#ff9b9b!important}
+    .town.target{fill:#ffd875!important}
+    .town.learned{fill:#d9f6e2}
+    .county-border{fill:none;stroke:#111827;stroke-width:1.25;vector-effect:non-scaling-stroke;pointer-events:none}
+    .quiz-card{position:relative;z-index:3;background:rgba(255,255,255,.97);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 12px 8px;text-align:center;box-shadow:none;backdrop-filter:blur(8px);flex:0 0 auto}
+    .quiz-label{font-size:9px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.05em}
+    .question{font-size:20px;font-weight:900;margin-top:1px;line-height:1.15}
+    .hint{font-size:11px;color:var(--muted);margin-top:3px}
+    .feedback{margin-top:3px;font-size:12px;font-weight:800;min-height:15px}
+    .map-panel.learn-mode .question{font-size:24px;line-height:1.2;margin:0;font-weight:900}
+    .map-panel.learn-mode .quiz-label,.map-panel.learn-mode .hint{display:none}
+    .map-panel.learn-mode .quiz-card{
+      min-height:78px;
+      padding:10px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .map-panel.reverse-mode .quiz-card{padding-bottom:7px}
+    .zoom{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;z-index:4}
+    .zoom button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:white;font-weight:900;cursor:pointer}
+    .right{padding:16px;display:flex;flex-direction:column;gap:14px;overflow:auto;overscroll-behavior:contain}
+    .card{border:1px solid var(--line);border-radius:14px;padding:13px}
+    .big{font-size:22px;font-weight:900}
+    .muted{color:var(--muted)}
+    .progress{height:10px;background:#eceff3;border-radius:999px;overflow:hidden}
+    .progress > div{height:100%;background:#111827;width:0%}
+    .weak-list{display:flex;flex-direction:column;gap:7px;max-height:300px;overflow:auto}
+    .weak-item{display:flex;justify-content:space-between;gap:8px;padding:9px 10px;background:var(--soft);border-radius:10px;font-size:13px}
+    .pill{padding:3px 7px;border-radius:999px;font-weight:800;font-size:11px}
+    .red{background:#fee2e2;color:#991b1b}.yellow{background:#fef3c7;color:#92400e}.green{background:#dcfce7;color:#166534}
+    .answers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:980px;margin-left:auto!important;margin-right:auto!important}
+    .answer-btn{border:1px solid var(--line);background:white;border-radius:9px;padding:7px 8px;text-align:center;cursor:pointer;font-weight:750;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .answer-btn:hover{background:var(--soft)}
+    .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted);z-index:10;background:#f5f7fa}
+    .panel-toggle.active{background:#111827;color:white;border-color:#111827}
+    @media (max-width:1100px) and (min-width:761px){
+      .layout{grid-template-columns:250px minmax(0,1fr) 270px}
+      .layout.hide-left{grid-template-columns:0 minmax(0,1fr) 270px}
+      .layout.hide-right{grid-template-columns:250px minmax(0,1fr) 0}
+      .layout.hide-left.hide-right{grid-template-columns:0 minmax(0,1fr) 0}
+    }
+    @media (max-width:760px){
+      .map-panel.learn-mode .question{font-size:20px}
+      .map-panel.learn-mode .quiz-card{min-height:66px}
+      html,body{height:auto;overflow:auto}
+      .app{height:auto;min-height:100vh;padding:10px;overflow:visible}.topbar{align-items:flex-start}.brand{font-size:20px}
+      .layout{display:flex;flex-direction:column;height:auto}.sidebar{order:1}.map-panel{order:2;min-height:68vh}.right{order:3;display:flex}
+      #map{min-height:62vh}.question{font-size:18px}
+      .answers{grid-template-columns:1fr 1fr}
+      .mode-grid{grid-template-columns:1fr 1fr}.mode-btn{font-size:12px;padding:10px 6px}
+    }
+  </style>
+  <!-- Administrative English names:
+       Township/District = official TOWNENG field from MOI/NLSC administrative boundary data.
+       County/City = official customary government English names.
+       Author = Ru1zly; Build = TW-ADMIN-TRAINER-RU1ZLY-STABLE-001; Signature = EF20BFAAD67B08C465626A7C0AA5111BC9F0785D7A9184D5991F43FE590151FF
+  -->
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div>
+      <div class="brand-row">
+          <div class="brand">🇹🇼 台灣行政區訓練</div>
+          <span class="author-credit">by Ru1zly</span>
+        </div>
+      <div class="sub">台灣鄉鎮市區互動地圖訓練</div>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="adminNameLangBtn" title="切換行政區名稱語言">行政區英文</button>
+      <button class="btn panel-toggle" id="toggleLeft">隱藏訓練面板</button>
+      <button class="btn panel-toggle" id="toggleRight">隱藏學習進度</button>
+      <button class="btn" id="resetView">重設地圖</button>
+      <button class="btn" id="resetStats">清除進度</button>
+      <button class="btn primary" id="startExamBtn" style="display:none">開始測驗</button>
+      <button class="btn danger" id="stopExamBtn" style="display:none">停止並取消</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="panel sidebar">
+      <div>
+        <div class="section-title">Training mode</div>
+        <div class="mode-grid" style="margin-top:8px">
+          <button class="mode-btn" data-mode="find" title="看到地名，點地圖位置">Find</button>
+          <button class="mode-btn" data-mode="reverse" title="看位置，選地名">Reverse</button>
+          <button class="mode-btn active" data-mode="learn" title="顯示地名自由學習">Learn</button>
+          <button class="mode-btn" data-mode="weak" title="優先重考不熟與錯題">Weak</button>
+        </div>
+      </div>
+
+      <div class="control">
+        <label>範圍</label>
+        <select id="countyFilter"><option value="ALL">全台</option></select>
+      </div>
+
+      <div>
+        <div class="section-title">Map / Quiz options</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <div class="control">
+            <label>Borders｜邊界層級</label>
+            <select id="borderMode" class="option-select">
+              <option value="township" selected>Township｜鄉鎮市區＋縣市邊界</option>
+              <option value="county">County｜只顯示縣市邊界</option>
+              <option value="off">Off｜不顯示邊界</option>
+            </select>
+          </div>
+          <label class="checkrow"><input type="checkbox" id="hardMode"> Hard mode｜不保留答對區域</label>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Session</div>
+        <div class="stats" style="margin-top:8px">
+          <div class="stat"><b id="sessionCorrect">0</b><span>答對</span></div>
+          <div class="stat"><b id="sessionWrong">0</b><span>答錯</span></div>
+          <div class="stat"><b id="accuracy">—</b><span>Accuracy</span></div>
+          <div class="stat"><b id="avgTime">—</b><span>平均秒數</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="panel map-panel learn-mode">
+      <div class="loading" id="loading">載入台灣行政區地圖中…</div>
+      <div class="quiz-card">
+        <div class="quiz-label" id="modeLabel">LEARN</div>
+        <div class="question" id="question">探索行政區</div>
+        <div class="hint" id="hint"></div>
+        <div class="feedback" id="feedback"></div>
+        <div class="answers" id="answers" style="margin-top:10px;display:none"></div>
+      </div>
+      <svg id="map"></svg>
+      <div class="zoom">
+        <button id="zoomIn">＋</button>
+        <button id="zoomOut">−</button>
+      </div>
+    </main>
+
+    <aside class="panel right">
+      <div class="card">
+        <div class="section-title">Mastery</div>
+        <div class="big"><span id="mastered">0</span> / <span id="totalTowns">—</span></div>
+        <div class="progress" style="margin-top:9px"><div id="masteryBar"></div></div>
+        <div class="muted" style="font-size:12px;margin-top:7px">Mastered = 至少答對 3 次且正確率 ≥ 80%</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Current place</div>
+        <div class="big" id="placeName">—</div>
+        <div class="muted" id="placeCounty" style="margin-top:3px">—</div>
+        <div id="placeStats" style="font-size:13px;margin-top:10px;line-height:1.7"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Weak areas</div>
+        <div class="weak-list" id="weakList" style="margin-top:8px"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+let adminNameLanguage="zh";
+const OFFICIAL_COUNTY_EN=new Map([
+  ["臺北市","Taipei City"],
+  ["台北市","Taipei City"],
+  ["新北市","New Taipei City"],
+  ["桃園市","Taoyuan City"],
+  ["臺中市","Taichung City"],
+  ["台中市","Taichung City"],
+  ["臺南市","Tainan City"],
+  ["台南市","Tainan City"],
+  ["高雄市","Kaohsiung City"],
+  ["基隆市","Keelung City"],
+  ["新竹市","Hsinchu City"],
+  ["嘉義市","Chiayi City"],
+  ["新竹縣","Hsinchu County"],
+  ["苗栗縣","Miaoli County"],
+  ["彰化縣","Changhua County"],
+  ["南投縣","Nantou County"],
+  ["雲林縣","Yunlin County"],
+  ["嘉義縣","Chiayi County"],
+  ["屏東縣","Pingtung County"],
+  ["宜蘭縣","Yilan County"],
+  ["花蓮縣","Hualien County"],
+  ["臺東縣","Taitung County"],
+  ["台東縣","Taitung County"],
+  ["澎湖縣","Penghu County"],
+  ["金門縣","Kinmen County"],
+  ["連江縣","Lienchiang County"]
+]);
+
+function adminTownName(feature){
+  if(!feature)return "—";
+  const p=feature.properties||{};
+  // English mode uses the official TOWNENG field only.
+  // If unavailable, keep the Chinese official name rather than inventing a translation.
+  return adminNameLanguage==="en"
+    ? (p.TOWNENG||p.TOWNNAME||"—")
+    : (p.TOWNNAME||"—");
+}
+
+function adminCountyName(featureOrName){
+  const chinese=typeof featureOrName==="string"
+    ? featureOrName
+    : ((featureOrName?.properties||{}).COUNTYNAME||"");
+
+  return adminNameLanguage==="en"
+    ? (OFFICIAL_COUNTY_EN.get(chinese)||chinese||"—")
+    : (chinese||"—");
+}
+
+function adminTownLines(feature){
+  const name=adminTownName(feature);
+
+  if(adminNameLanguage!=="en" || !name || name==="—"){
+    return [name];
+  }
+
+  const words=name.trim().split(/\s+/);
+  if(words.length<=1)return [name];
+
+  const suffixes=new Set([
+    "District","Township","Town","City","Village"
+  ]);
+
+  const last=words[words.length-1];
+
+  if(suffixes.has(last)){
+    const first=words.slice(0,-1).join(" ");
+    return first ? [first,last] : [last];
+  }
+
+  // For any other long official English name, split near the middle.
+  if(name.length>=13){
+    const midpoint=Math.ceil(words.length/2);
+    return [
+      words.slice(0,midpoint).join(" "),
+      words.slice(midpoint).join(" ")
+    ].filter(Boolean);
+  }
+
+  return [name];
+}
+
+function setAdminLabelText(node,feature){
+  const lines=adminTownLines(feature);
+  const selection=d3.select(node);
+
+  selection.text("");
+
+  const lineHeight=1.05;
+  const startDy=lines.length===1
+    ? 0
+    : -((lines.length-1)*lineHeight)/2;
+
+  lines.forEach((line,index)=>{
+    selection.append("tspan")
+      .attr("x",node.getAttribute("x"))
+      .attr("dy",index===0?`${startDy}em`:`${lineHeight}em`)
+      .text(line);
+  });
+}
+
+function adminLabelMetrics(feature){
+  const lines=adminTownLines(feature);
+  return {
+    lines,
+    maxChars:Math.max(1,...lines.map(line=>[...line].length)),
+    lineCount:Math.max(1,lines.length)
+  };
+}
+
+const DATA_URLS = [
+  "https://cdn.jsdelivr.net/npm/taiwan-atlas@2021.9.20/towns-10t.json?v=12",
+  "https://unpkg.com/taiwan-atlas@2021.9.20/towns-10t.json?v=12",
+  "https://cdn.jsdelivr.net/npm/taiwan-atlas/towns-10t.json"
+];
+let topo, towns=[], counties=[], current=null, currentStart=0, mode="learn", answered=false;
+
+const MAP_W=1000;
+const MAP_H=1200;
+const MAP_PAD=34;
+
+let staticProjection=null;
+let staticPath=null;
+let townLayer=null;
+let countyLayer=null;
+let countyTransforms=new Map();
+let mapBuilt=false;
+let activeScope="ALL";
+let activeScopeTransform=d3.zoomIdentity;
+let countyScopedView=false;
+let session={correct:0,wrong:0,times:[]};
+let correctHistory=new Set();
+
+let examActive=false;
+let examBaselineStats=null;
+let examBaselineCorrectHistory=null;
+let examTimers=new Set();
+
+let examQuestionPool=[];
+let examQuestionIndex=0;
+let examCompleted=false;
+const svg=d3.select("#map"), g=svg.append("g");
+let labelG=g.append("g");
+let currentZoomK=1;
+let labelLayoutTimer=0;
+let labelNodes=[];
+let visibleLabelNodes=[];
+let labelZoomRAF=0;
+let pendingLabelZoomK=1;
+
+function updateVisibleLabelSizes(k=1){
+  if(mode!=="learn")return;
+
+  for(const node of visibleLabelNodes){
+    const screenSize=labelScreenSize(node,k);
+    node.setAttribute("font-size",screenSize/k);
+  }
+}
+
+function queueVisibleLabelSizeUpdate(k=1){
+  pendingLabelZoomK=k;
+  if(labelZoomRAF)return;
+
+  labelZoomRAF=requestAnimationFrame(()=>{
+    labelZoomRAF=0;
+    updateVisibleLabelSizes(pendingLabelZoomK);
+  });
+}
+
+function finishZoomLabelLayout(){
+  if(mode!=="learn"){
+    document.body.classList.remove("is-zooming");
+    return;
+  }
+
+  updateLabelVisibility(currentZoomK);
+
+  cancelAnimationFrame(labelLayoutRAF);
+  labelLayoutRAF=requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      updateLabelLayout();
+      document.body.classList.remove("is-zooming");
+    });
+  });
+}
+
+const zoom=d3.zoom()
+  .scaleExtent([0.8,36])
+  .extent([[0,0],[MAP_W,MAP_H]])
+  .on("start",()=>{
+    document.body.classList.add("is-zooming");
+    clearTimeout(labelLayoutTimer);
+    cancelAnimationFrame(labelLayoutRAF);
+    cancelAnimationFrame(labelZoomRAF);
+    labelZoomRAF=0;
+  })
+  .on("zoom",event=>{
+    currentZoomK=event.transform.k||1;
+    g.attr("transform",event.transform);
+    queueVisibleLabelSizeUpdate(currentZoomK);
+  })
+  .on("end",()=>{
+    queueVisibleLabelSizeUpdate(currentZoomK);
+    labelLayoutTimer=setTimeout(finishZoomLabelLayout,28);
+  });
+svg.call(zoom);
+const mapPanelEl=document.querySelector(".map-panel");
+mapPanelEl.addEventListener("wheel",event=>{
+  event.preventDefault();
+},{passive:false});
+
+svg.on("click.clearLearnSelection",(event)=>{
+  if(mode!=="learn")return;
+  if(event.target===svg.node())clearLearnSelection();
+});
+
+const STORE_KEY="tw368trainer_stats_v1";
+let stats=JSON.parse(localStorage.getItem(STORE_KEY)||"{}");
+
+function scheduleExamTask(callback,delay){
+  const timer=setTimeout(()=>{
+    examTimers.delete(timer);
+    if(examActive)callback();
+  },delay);
+  examTimers.add(timer);
+  return timer;
+}
+
+function clearExamTimers(){
+  for(const timer of examTimers)clearTimeout(timer);
+  examTimers.clear();
+  svg.interrupt();
+}
+
+function cloneStats(source){
+  return JSON.parse(JSON.stringify(source||{}));
+}
+
+function shuffleArray(items){
+  const result=[...items];
+
+  for(let i=result.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [result[i],result[j]]=[result[j],result[i]];
+  }
+
+  return result;
+}
+
+function buildExamQuestionPool(){
+  let items=eligible();
+
+  if(mode==="weak"){
+    // Weak mode keeps the existing weakness weighting, but every place
+    // still appears at most once in the same session.
+    items=[...items].sort((a,b)=>{
+      const sa=getStat(a);
+      const sb=getStat(b);
+
+      const na=sa.right+sa.wrong;
+      const nb=sb.right+sb.wrong;
+
+      const accA=na?sa.right/na:0;
+      const accB=nb?sb.right/nb:0;
+
+      const scoreA=(1-accA)*8+Math.max(1,4-sa.right)+Math.random()*1.5;
+      const scoreB=(1-accB)*8+Math.max(1,4-sb.right)+Math.random()*1.5;
+
+      return scoreB-scoreA;
+    });
+  }else{
+    items=shuffleArray(items);
+  }
+
+  examQuestionPool=items;
+  examQuestionIndex=0;
+  examCompleted=false;
+}
+
+function takeNextExamQuestion(){
+  if(examQuestionIndex>=examQuestionPool.length)return null;
+  return examQuestionPool[examQuestionIndex++];
+}
+
+function showExamCompleteState(){
+  examCompleted=true;
+  examActive=false;
+  answered=true;
+  current=null;
+  clearExamTimers();
+  clearMarks();
+
+  document.querySelector("#answers").style.display="none";
+  document.querySelector("#question").textContent="本次測驗完成";
+  document.querySelector("#hint").textContent=`已完成 ${examQuestionPool.length} 題`;
+  document.querySelector("#feedback").textContent="";
+  resetCurrentPlaceCard();
+  updateExamButtons();
+}
+
+
+function sKey(f){return (f.properties.COUNTYNAME||"")+"|"+(f.properties.TOWNNAME||"")}
+function getStat(f){
+  const k=sKey(f); return stats[k]||{right:0,wrong:0,totalTime:0,last:0};
+}
+function saveStat(f,ok,sec){
+  const k=sKey(f), s=getStat(f);
+  if(ok)s.right++; else s.wrong++;
+  s.totalTime+=(sec||0); s.last=Date.now(); stats[k]=s;
+  localStorage.setItem(STORE_KEY,JSON.stringify(stats)); refreshSide();
+}
+function mastery(f){
+  const s=getStat(f), n=s.right+s.wrong, acc=n?s.right/n:0;
+  if(s.right>=3&&acc>=.8)return "green";
+  if(n>=1&&acc>=.5)return "yellow";
+  return "red";
+}
+function eligible(){
+  const c=document.querySelector("#countyFilter").value;
+  let a=towns;
+
+  if(c!=="ALL"){
+    a=a.filter(x=>(x.properties.COUNTYNAME||"")===c);
+  }
+
+  if(mode==="weak"){
+    const weakOnly=a.filter(x=>mastery(x)!=="green");
+    if(weakOnly.length)a=weakOnly;
+  }
+
+  return a;
+}
+function weightedPick(arr){
+  const weights=arr.map(f=>{
+    const s=getStat(f), n=s.right+s.wrong, acc=n?s.right/n:0;
+    return n===0?5:(1-acc)*8+Math.max(1,4-s.right);
+  });
+  const total=weights.reduce((a,b)=>a+b,0); let r=Math.random()*total;
+  for(let i=0;i<arr.length;i++){r-=weights[i];if(r<=0)return arr[i]}
+  return arr[arr.length-1];
+}
+function visibleTowns(){
+  const c=document.querySelector("#countyFilter").value;
+  return c==="ALL" ? towns : towns.filter(x=>(x.properties.COUNTYNAME||"")===c);
+}
+
+function currentScopeName(){
+  return document.querySelector("#countyFilter").value||"ALL";
+}
+
+function applyPersistentCorrect(){
+  const hard=document.querySelector("#hardMode")?.checked;
+  townLayer.selectAll(".town").classed("correct",false);
+
+  if(hard || mode==="learn")return;
+
+  townLayer
+    .selectAll(".town")
+    .filter(d=>correctHistory.has(sKey(d)))
+    .classed("correct",true);
+}
+
+function countyTransformFor(name){
+  return countyTransforms.get(name)||d3.zoomIdentity;
+}
+
+function computeFitTransform(bounds,padding=26){
+  const [[x0,y0],[x1,y1]]=bounds;
+  const bw=Math.max(1,x1-x0);
+  const bh=Math.max(1,y1-y0);
+  const k=Math.min(
+    (MAP_W-padding*2)/bw,
+    (MAP_H-padding*2)/bh
+  );
+  const cx=(x0+x1)/2;
+  const cy=(y0+y1)/2;
+
+  return d3.zoomIdentity
+    .translate(MAP_W/2-k*cx,MAP_H/2-k*cy)
+    .scale(k);
+}
+
+function buildStaticMap(){
+  svg.attr("viewBox",[0,0,MAP_W,MAP_H])
+    .attr("preserveAspectRatio","xMidYMid meet");
+
+  const allFeatures={type:"FeatureCollection",features:towns};
+  staticProjection=d3.geoMercator().fitExtent(
+    [[MAP_PAD,MAP_PAD],[MAP_W-MAP_PAD,MAP_H-MAP_PAD]],
+    allFeatures
+  );
+  staticPath=d3.geoPath(staticProjection);
+
+  g.selectAll("*").remove();
+
+  townLayer=g.append("g").attr("class","town-layer");
+  countyLayer=g.append("g").attr("class","county-layer");
+  labelG=g.append("g").attr("class","labels");
+
+  townLayer
+    .selectAll("path.town")
+    .data(towns,d=>sKey(d))
+    .join("path")
+    .attr("class","town")
+    .attr("data-county",d=>d.properties.COUNTYNAME||"")
+    .attr("d",staticPath)
+    .on("click",(event,d)=>handleTownClick(d,event));
+
+  countyLayer
+    .selectAll("path.county-border")
+    .data(counties,d=>d.properties.COUNTYNAME||"")
+    .join("path")
+    .attr("class","county-border")
+    .attr("data-county",d=>d.properties.COUNTYNAME||"")
+    .attr("d",staticPath);
+
+  labelG
+    .selectAll("text")
+    .data(towns,d=>sKey(d))
+    .join("text")
+    .attr("x",d=>staticPath.centroid(d)[0])
+    .attr("y",d=>staticPath.centroid(d)[1])
+    .attr("data-county",d=>d.properties.COUNTYNAME||"")
+    .attr("data-area",d=>staticPath.area(d))
+    .each(function(d){
+      setAdminLabelText(this,d);
+
+      const metrics=adminLabelMetrics(d);
+      const bounds=staticPath.bounds(d);
+      const width=Math.max(1,bounds[1][0]-bounds[0][0]);
+      const height=Math.max(1,bounds[1][1]-bounds[0][1]);
+
+      const fitByWidth=(width/(metrics.maxChars+0.9))*0.76;
+      const fitByHeight=(height/(metrics.lineCount*1.05))*0.50;
+      const fitMap=Math.max(0.1,Math.min(fitByWidth,fitByHeight));
+
+      this.setAttribute("data-fit-map",fitMap);
+      this.setAttribute("data-fit-visible","0");
+      this.setAttribute(
+        "data-desired-screen",
+        adminNameLanguage==="en"?"12.0":"10.7"
+      );
+    })
+    .attr("text-anchor","middle")
+    .attr("dominant-baseline","middle")
+    .attr("pointer-events","none")
+    .attr("fill","#111827")
+    .attr("font-weight",625);
+
+  labelNodes=labelG.selectAll("text").nodes();
+
+  countyTransforms.set("ALL",d3.zoomIdentity);
+
+  for(const countyName of new Set(towns.map(f=>f.properties.COUNTYNAME).filter(Boolean))){
+    const features=towns.filter(f=>f.properties.COUNTYNAME===countyName);
+    if(!features.length)continue;
+
+    const collection={type:"FeatureCollection",features};
+    countyTransforms.set(
+      countyName,
+      computeFitTransform(staticPath.bounds(collection),24)
+    );
+  }
+
+  mapBuilt=true;
+  applyMapState({resetView:true});
+}
+
+function updateLabelMetadataForScope(){
+  const scoped=activeScope!=="ALL";
+  countyScopedView=scoped;
+
+  labelG.selectAll("text").each(function(){
+    this.setAttribute(
+      "data-desired-screen",
+      adminNameLanguage==="en"
+        ? (scoped?"16.0":"12.0")
+        : (scoped?"14.0":"10.7")
+    );
+    this.setAttribute(
+      "font-weight",
+      adminNameLanguage==="en"
+        ? (scoped?"680":"640")
+        : (scoped?"660":"625")
+    );
+  });
+}
+
+function applyScopeVisibility(){
+  const scoped=activeScope!=="ALL";
+
+  townLayer
+    .selectAll(".town")
+    .style("display",d=>
+      !scoped || d.properties.COUNTYNAME===activeScope ? "" : "none"
+    );
+
+  labelG
+    .selectAll("text")
+    .style("display",d=>
+      mode==="learn" && (!scoped || d.properties.COUNTYNAME===activeScope)
+        ? ""
+        : "none"
+    );
+
+  countyLayer
+    .selectAll(".county-border")
+    .style("display",d=>
+      !scoped || d.properties.COUNTYNAME===activeScope ? "" : "none"
+    );
+}
+
+function applyBorderMode(){
+  const borderMode=document.querySelector("#borderMode")?.value||"township";
+  const showTownBorders=borderMode==="township";
+  const showCountyBorders=borderMode!=="off";
+
+  townLayer
+    .selectAll(".town")
+    .style("stroke",showTownBorders?null:"transparent");
+
+  countyLayer
+    .style("display",showCountyBorders?"":"none");
+}
+
+function applyLabelMode(){
+  labelG.style("display",mode==="learn"?"":"none");
+
+  if(mode==="learn"){
+    updateLabelMetadataForScope();
+    updateLabelVisibility(currentZoomK);
+    scheduleLabelLayout();
+  }
+}
+
+function applyMapState({resetView=false}={}){
+  if(!mapBuilt)return;
+
+  activeScope=currentScopeName();
+  activeScopeTransform=countyTransformFor(activeScope);
+
+  applyScopeVisibility();
+  applyBorderMode();
+  applyLabelMode();
+  applyPersistentCorrect();
+
+  if(resetView){
+    const baseK=activeScopeTransform.k||1;
+    zoom.scaleExtent([
+      Math.max(0.8,baseK*0.72),
+      Math.max(36,baseK*18)
+    ]);
+
+    currentZoomK=baseK;
+    svg.interrupt().call(zoom.transform,activeScopeTransform);
+  }
+
+  if(current){
+    const inScope=
+      activeScope==="ALL" ||
+      current.properties.COUNTYNAME===activeScope;
+
+    if(inScope){
+      if(mode==="reverse")highlightCurrent();
+      else if(mode==="learn")flashFeature(current,"target");
+    }
+  }
+}
+
+// Kept as a lightweight compatibility wrapper.
+// It no longer rebuilds paths, projection, centroids, or labels.
+function renderMap(){
+  applyMapState({resetView:false});
+}
+
+let labelLayoutRAF=0;
+
+function labelScreenSize(node,k){
+  const desiredBase=+node.getAttribute("data-desired-screen")||9;
+  const fitMap=+node.getAttribute("data-fit-map")||0;
+  const zoomGrowth=Math.min(1.48,1+0.18*Math.log2(Math.max(1,k)));
+  return Math.min(desiredBase*zoomGrowth,fitMap*k);
+}
+
+function updateLabelVisibility(k=1){
+  if(mode!=="learn")return;
+
+  visibleLabelNodes=[];
+
+  for(const node of labelNodes){
+    const sameScope=
+      activeScope==="ALL" ||
+      node.getAttribute("data-county")===activeScope;
+
+    if(!sameScope){
+      node.style.display="none";
+      node.setAttribute("data-fit-visible","0");
+      continue;
+    }
+
+    const rawSize=labelScreenSize(node,k);
+    const screenSize=countyScopedView?Math.max(6.1,rawSize):rawSize;
+    const visible=countyScopedView || screenSize>=6.1;
+
+    node.setAttribute("data-fit-visible",visible?"1":"0");
+    node.style.display=visible?"":"none";
+
+    if(visible){
+      node.setAttribute("font-size",screenSize/k);
+      visibleLabelNodes.push(node);
+    }
+  }
+}
+
+function scheduleLabelLayout(){
+  if(mode!=="learn")return;
+
+  cancelAnimationFrame(labelLayoutRAF);
+  labelLayoutRAF=requestAnimationFrame(()=>{
+    requestAnimationFrame(updateLabelLayout);
+  });
+}
+
+function updateLabelLayout(){
+  if(mode!=="learn")return;
+
+  for(const node of labelNodes){
+    const sameScope=
+      activeScope==="ALL" ||
+      node.getAttribute("data-county")===activeScope;
+
+    node.style.display=
+      sameScope && node.getAttribute("data-fit-visible")==="1"
+        ? ""
+        : "none";
+  }
+
+  if(countyScopedView){
+    visibleLabelNodes=labelNodes.filter(node=>
+      node.getAttribute("data-county")===activeScope &&
+      node.getAttribute("data-fit-visible")==="1"
+    );
+    return;
+  }
+
+  const candidates=labelNodes
+    .filter(node=>
+      node.getAttribute("data-fit-visible")==="1" &&
+      node.style.display!=="none"
+    )
+    .sort((a,b)=>
+      (+b.getAttribute("data-area")||0)-
+      (+a.getAttribute("data-area")||0)
+    );
+
+  const keptNodes=[];
+  const keptBoxes=[];
+
+  for(const node of candidates){
+    const rect=node.getBoundingClientRect();
+    const box={
+      left:rect.left-3,
+      right:rect.right+3,
+      top:rect.top-2,
+      bottom:rect.bottom+2
+    };
+
+    const overlap=keptBoxes.some(other=>!(
+      box.right<other.left ||
+      box.left>other.right ||
+      box.bottom<other.top ||
+      box.top>other.bottom
+    ));
+
+    if(overlap){
+      node.style.display="none";
+    }else{
+      keptBoxes.push(box);
+      keptNodes.push(node);
+    }
+  }
+
+  visibleLabelNodes=keptNodes;
+}
+
+function updateExamButtons(){
+  const isQuizMode=mode!=="learn";
+  const startButton=document.querySelector("#startExamBtn");
+
+  startButton.style.display=isQuizMode&&!examActive?"":"none";
+  startButton.textContent=examCompleted?"重新開始":"開始測驗";
+
+  document.querySelector("#stopExamBtn").style.display=
+    isQuizMode&&examActive?"":"none";
+}
+
+function showExamReadyState(){
+  if(mode==="learn")return;
+
+  examCompleted=false;
+  current=null;
+  answered=false;
+  clearMarks();
+  document.querySelector("#answers").style.display="none";
+  document.querySelector("#feedback").textContent="";
+  document.querySelector("#question").textContent="準備開始";
+  document.querySelector("#hint").textContent="";
+  resetCurrentPlaceCard();
+  updateExamButtons();
+}
+
+function startExam(){
+  if(mode==="learn"||examActive)return;
+
+  examCompleted=false;
+  clearExamTimers();
+  examBaselineStats=cloneStats(stats);
+  examBaselineCorrectHistory=new Set(correctHistory);
+
+  session={correct:0,wrong:0,times:[]};
+  updateSession();
+
+  buildExamQuestionPool();
+
+  if(!examQuestionPool.length){
+    document.querySelector("#question").textContent="沒有可用題目";
+    document.querySelector("#hint").textContent="";
+    document.querySelector("#feedback").textContent="";
+    examActive=false;
+    updateExamButtons();
+    return;
+  }
+
+  examActive=true;
+  answered=false;
+  current=null;
+  clearMarks();
+  updateExamButtons();
+  nextQuestion();
+}
+
+function stopExam({restore=true}={}){
+  if(!examActive){
+    showExamReadyState();
+    return;
+  }
+
+  clearExamTimers();
+
+  if(restore&&examBaselineStats){
+    stats=cloneStats(examBaselineStats);
+    correctHistory=new Set(examBaselineCorrectHistory||[]);
+    localStorage.setItem(STORE_KEY,JSON.stringify(stats));
+  }
+
+  examActive=false;
+  answered=false;
+  current=null;
+  examBaselineStats=null;
+  examBaselineCorrectHistory=null;
+  examQuestionPool=[];
+  examQuestionIndex=0;
+  examCompleted=false;
+  session={correct:0,wrong:0,times:[]};
+
+  clearMarks();
+  updateSession();
+  refreshSide();
+  showExamReadyState();
+}
+
+function setMode(m){
+  if(examActive)stopExam({restore:true});
+
+  mode=m;
+  answered=false;
+  current=null;
+  examQuestionPool=[];
+  examQuestionIndex=0;
+  examCompleted=false;
+
+  document.querySelectorAll(".mode-btn").forEach(button=>{
+    button.classList.toggle("active",button.dataset.mode===m);
+  });
+
+  const panel=document.querySelector(".map-panel");
+  panel.classList.toggle("learn-mode",m==="learn");
+  panel.classList.toggle("reverse-mode",m==="reverse");
+
+  if(m==="learn")document.querySelector("#modeLabel").textContent="LEARN";
+  else if(m==="reverse")document.querySelector("#modeLabel").textContent="REVERSE";
+  else if(m==="weak")document.querySelector("#modeLabel").textContent="WEAK";
+  else document.querySelector("#modeLabel").textContent="FIND";
+
+  applyMapState({resetView:false});
+
+  if(m==="learn"){
+    clearLearnSelection();
+  }else{
+    showExamReadyState();
+  }
+
+  updateExamButtons();
+}
+function clearMarks(){
+  townLayer.selectAll(".town").classed("wrong",false).classed("target",false).classed("correct",false);
+  applyPersistentCorrect();
+}
+function resetCurrentPlaceCard(){
+  document.querySelector("#placeName").textContent="—";
+  document.querySelector("#placeCounty").textContent="—";
+  document.querySelector("#placeStats").innerHTML="";
+}
+
+function clearLearnSelection(){
+  if(mode!=="learn")return;
+  current=null;
+  clearMarks();
+  document.querySelector("#question").textContent="探索行政區";
+  document.querySelector("#hint").textContent="";
+  document.querySelector("#feedback").textContent="";
+  resetCurrentPlaceCard();
+}
+
+function nextQuestion(){
+  if(mode!=="learn"&&!examActive){
+    showExamReadyState();
+    return;
+  }
+
+  answered=false;
+  clearMarks();
+  document.querySelector("#feedback").textContent="";
+  document.querySelector("#answers").style.display="none";
+
+  if(mode==="learn"){
+    clearLearnSelection();
+    return;
+  }
+
+  current=takeNextExamQuestion();
+
+  if(!current){
+    showExamCompleteState();
+    return;
+  }
+
+  currentStart=performance.now();
+  const p=current.properties;
+
+  if(mode==="reverse"){
+    document.querySelector("#question").textContent="這是哪個行政區？";
+    document.querySelector("#hint").textContent="選擇答案";
+    highlightCurrent();
+    makeChoices();
+    scheduleExamTask(()=>zoomToContext(current),60);
+  }else{
+    document.querySelector("#question").textContent=adminTownName(current);
+    document.querySelector("#hint").textContent="";
+  }
+
+  updateCurrentCard(current);
+}
+function makeChoices(){
+  const pool=eligible().filter(x=>x!==current);
+  const sameCounty=pool.filter(x=>x.properties.COUNTYNAME===current.properties.COUNTYNAME);
+  const picks=[current];
+  while(picks.length<4 && sameCounty.length){picks.push(sameCounty.splice(Math.floor(Math.random()*sameCounty.length),1)[0])}
+  while(picks.length<4 && pool.length){const x=pool[Math.floor(Math.random()*pool.length)];if(!picks.includes(x))picks.push(x)}
+  picks.sort(()=>Math.random()-.5);
+  const box=document.querySelector("#answers"); box.innerHTML=""; box.style.display="grid";
+  picks.forEach(f=>{
+    const b=document.createElement("button");b.className="answer-btn";
+    b.textContent=adminCountyName(f)+" · "+adminTownName(f);
+    b.dataset.key=sKey(f);
+    b.onclick=()=>answerReverse(f,b);box.appendChild(b);
+  });
+}
+function answerReverse(f,b){
+  if(!examActive||answered)return;
+  const ok=sKey(f)===sKey(current), sec=(performance.now()-currentStart)/1000;
+  const hard=document.querySelector("#hardMode").checked;
+  if(ok){
+    answered=true; session.correct++;session.times.push(sec);saveStat(current,true,sec);
+    correctHistory.add(sKey(current));
+    b.style.background="#dcfce7";
+    document.querySelector("#feedback").textContent=`✅ 正確：${adminCountyName(current)} ${adminTownName(current)} · ${sec.toFixed(1)}s`;
+    flashFeature(current,"correct"); updateSession();
+    scheduleExamTask(nextQuestion,750);
+  }else{
+    session.wrong++;saveStat(current,false,sec);
+    b.style.background="#fee2e2";
+    updateSession();
+    answered=true;
+    const correctBtn=[...document.querySelectorAll(".answer-btn")]
+      .find(x=>x.dataset.key===sKey(current));
+
+    if(correctBtn)correctBtn.style.background="#dcfce7";
+
+    flashFeature(current,"target");
+    document.querySelector("#feedback").textContent=
+      `❌ 正解：${adminCountyName(current)} ${adminTownName(current)}`;
+
+    scheduleExamTask(nextQuestion,1700);
+  }
+}
+function handleTownClick(d,event){
+  updateCurrentCard(d);
+  if(mode==="learn"){
+    current=d;
+    clearMarks();
+    flashFeature(d,"target");
+    document.querySelector("#question").textContent=adminCountyName(d)+" "+adminTownName(d);
+    document.querySelector("#hint").textContent="";
+    return;
+  }
+  if(mode==="reverse"||!examActive||answered)return;
+
+  const ok=sKey(d)===sKey(current), sec=(performance.now()-currentStart)/1000;
+  const hard=document.querySelector("#hardMode").checked;
+
+  if(ok){
+    answered=true;session.correct++;session.times.push(sec);saveStat(current,true,sec);
+    correctHistory.add(sKey(current));
+    flashFeature(d,"correct");
+    document.querySelector("#feedback").textContent=`✅ ${adminCountyName(current)} ${adminTownName(current)} · ${sec.toFixed(1)}s`;
+    updateSession();
+    scheduleExamTask(nextQuestion,750);
+  }else{
+    session.wrong++;saveStat(current,false,sec);
+    flashFeature(d,"wrong",1700);
+    updateSession();
+
+    answered=true;
+    flashFeature(current,"target");
+    document.querySelector("#feedback").textContent=
+      `❌ 你點到 ${adminTownName(d)}｜正解：${adminTownName(current)}`;
+
+    scheduleExamTask(nextQuestion,1700);
+  }
+}
+function flashFeature(f,cls,timeout=0){
+  const sel=townLayer.selectAll(".town").filter(d=>sKey(d)===sKey(f)).classed(cls,true);
+  if(timeout){
+    scheduleExamTask(()=>{
+      sel.classed(cls,false);
+      if(cls==="correct")applyPersistentCorrect();
+    },timeout);
+  }
+}
+function highlightCurrent(){flashFeature(current,"target")}
+function zoomToContext(f){
+  const el=townLayer
+    .selectAll(".town")
+    .filter(d=>sKey(d)===sKey(f))
+    .node();
+
+  if(!el)return;
+
+  const b=el.getBBox();
+  const cx=b.x+b.width/2;
+  const cy=b.y+b.height/2;
+  const baseK=activeScopeTransform.k||1;
+  const desired=activeScope==="ALL"
+    ? Math.max(baseK,4.6)
+    : Math.max(baseK,baseK*1.75);
+
+  const fitLimit=Math.min(
+    MAP_W/Math.max(b.width*2.6,90),
+    MAP_H/Math.max(b.height*2.6,90)
+  );
+
+  const k=Math.max(baseK,Math.min(desired,fitLimit));
+
+  svg
+    .transition()
+    .duration(360)
+    .call(
+      zoom.transform,
+      d3.zoomIdentity
+        .translate(MAP_W/2-k*cx,MAP_H/2-k*cy)
+        .scale(k)
+    );
+}
+
+function zoomToFeature(f,scale=3){
+  const el=townLayer
+    .selectAll(".town")
+    .filter(d=>sKey(d)===sKey(f))
+    .node();
+
+  if(!el)return;
+
+  const b=el.getBBox();
+  const cx=b.x+b.width/2;
+  const cy=b.y+b.height/2;
+  const baseK=activeScopeTransform.k||1;
+  const k=Math.max(
+    baseK,
+    Math.min(
+      baseK*scale,
+      Math.min(
+        MAP_W/Math.max(b.width,40),
+        MAP_H/Math.max(b.height,40)
+      )*0.6
+    )
+  );
+
+  svg
+    .transition()
+    .duration(300)
+    .call(
+      zoom.transform,
+      d3.zoomIdentity
+        .translate(MAP_W/2-k*cx,MAP_H/2-k*cy)
+        .scale(k)
+    );
+}
+function updateCurrentCard(f){
+  if(!f)return;
+  const p=f.properties,s=getStat(f),n=s.right+s.wrong,acc=n?Math.round(s.right/n*100):0,avg=s.right?(s.totalTime/Math.max(1,n)).toFixed(1):"—";
+  document.querySelector("#placeName").textContent=adminTownName(f);
+  document.querySelector("#placeCounty").textContent=adminCountyName(f);
+  document.querySelector("#placeStats").innerHTML=`答對：<b>${s.right}</b><br>答錯：<b>${s.wrong}</b><br>正確率：<b>${n?acc+"%":"—"}</b><br>熟悉度：<span class="pill ${mastery(f)}">${mastery(f)==="green"?"Mastered":mastery(f)==="yellow"?"Learning":"Weak"}</span>`;
+}
+function updateSession(){
+  document.querySelector("#sessionCorrect").textContent=session.correct;
+  document.querySelector("#sessionWrong").textContent=session.wrong;
+  const n=session.correct+session.wrong;
+  document.querySelector("#accuracy").textContent=n?Math.round(session.correct/n*100)+"%":"—";
+  document.querySelector("#avgTime").textContent=session.times.length?(session.times.reduce((a,b)=>a+b,0)/session.times.length).toFixed(1)+"s":"—";
+}
+function refreshSide(){
+  const mastered=towns.filter(f=>mastery(f)==="green").length;
+  document.querySelector("#mastered").textContent=mastered;
+  document.querySelector("#totalTowns").textContent=towns.length||"—";
+  document.querySelector("#masteryBar").style.width=(towns.length?mastered/towns.length*100:0)+"%";
+  const weak=towns.map(f=>({f,s:getStat(f)})).filter(x=>x.s.right+x.s.wrong>0)
+    .sort((a,b)=>{
+      const aa=a.s.right/(a.s.right+a.s.wrong),bb=b.s.right/(b.s.right+b.s.wrong);
+      return aa-bb || (b.s.wrong-a.s.wrong);
+    }).slice(0,12);
+  const box=document.querySelector("#weakList");box.innerHTML="";
+  if(!weak.length){box.innerHTML='<div class="muted" style="font-size:13px">開始作答後，這裡會自動列出最弱的行政區。</div>';return}
+  weak.forEach(({f,s})=>{
+    const n=s.right+s.wrong,acc=Math.round(s.right/n*100),div=document.createElement("div");div.className="weak-item";
+    div.innerHTML=`<span>${adminCountyName(f)} · <b>${adminTownName(f)}</b></span><span class="pill ${mastery(f)}">${acc}%</span>`;
+    div.onclick=()=>{current=f;updateCurrentCard(f);zoomToContext(f)};box.appendChild(div);
+  });
+}
+function populateCounties(){
+  const names=[...new Set(towns.map(f=>f.properties.COUNTYNAME).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+
+  const sel=document.querySelector("#countyFilter");
+
+  for(const name of names){
+    const option=document.createElement("option");
+    option.value=name;
+    option.dataset.zh=name;
+    option.dataset.en=OFFICIAL_COUNTY_EN.get(name)||name;
+    option.textContent=name;
+    sel.appendChild(option);
+  }
+}
+
+function refreshAdministrativeNameLanguage(){
+  document.querySelector("#adminNameLangBtn").textContent=
+    adminNameLanguage==="zh"?"行政區英文":"行政區中文";
+
+  const countySelect=document.querySelector("#countyFilter");
+  for(const option of countySelect.options){
+    if(option.value==="ALL"){
+      option.textContent="全台";
+    }else{
+      option.textContent=adminNameLanguage==="en"
+        ? (option.dataset.en||option.value)
+        : (option.dataset.zh||option.value);
+    }
+  }
+
+  if(mapBuilt && labelG){
+    labelG.selectAll("text")
+      .each(function(d){
+        setAdminLabelText(this,d);
+
+        const metrics=adminLabelMetrics(d);
+        const bounds=staticPath.bounds(d);
+        const width=Math.max(1,bounds[1][0]-bounds[0][0]);
+        const height=Math.max(1,bounds[1][1]-bounds[0][1]);
+
+        const fitByWidth=(width/(metrics.maxChars+0.9))*0.76;
+        const fitByHeight=(height/(metrics.lineCount*1.05))*0.50;
+
+        this.setAttribute(
+          "data-fit-map",
+          Math.max(0.1,Math.min(fitByWidth,fitByHeight))
+        );
+      });
+
+    updateLabelMetadataForScope();
+
+    if(mode==="learn"){
+      updateLabelVisibility(currentZoomK);
+      scheduleLabelLayout();
+    }
+  }
+
+  if(current){
+    if(mode==="learn"){
+      document.querySelector("#question").textContent=
+        adminCountyName(current)+" "+adminTownName(current);
+    }else if(mode==="find" && examActive){
+      document.querySelector("#question").textContent=adminTownName(current);
+    }else if(mode==="reverse" && examActive){
+      for(const button of document.querySelectorAll(".answer-btn")){
+        const feature=towns.find(item=>sKey(item)===button.dataset.key);
+        if(feature){
+          button.textContent=adminCountyName(feature)+" · "+adminTownName(feature);
+        }
+      }
+    }
+    updateCurrentCard(current);
+  }
+
+  refreshSide();
+}
+
+
+async function loadTopoWithFallback(){
+  let lastError = null;
+  for (const url of DATA_URLS){
+    try{
+      document.querySelector("#loading").textContent = "載入台灣行政區地圖中…";
+      const res = await fetch(url, {cache:"force-cache"});
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if(!data || !data.objects || !data.objects.towns) throw new Error("TopoJSON 格式不完整");
+      return data;
+    }catch(err){
+      console.warn("Map source failed:", url, err);
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("所有地圖來源皆載入失敗");
+}
+async function init(){
+  try{
+    topo=await loadTopoWithFallback();
+    towns=topojson.feature(topo,topo.objects.towns).features;
+    counties=topo.objects.counties?topojson.feature(topo,topo.objects.counties).features:[];
+    if(!towns.length) throw new Error("找不到鄉鎮市區資料");
+    populateCounties();buildStaticMap();refreshSide();updateSession();setMode("learn");updateExamButtons();
+    document.querySelector("#loading").style.display="none";
+  }catch(e){
+    console.error("Taiwan 368 Trainer init error:", e);
+    const isFile = location.protocol === "file:";
+    document.querySelector("#loading").innerHTML =
+      `地圖資料載入失敗。<br><small>${String(e && e.message ? e.message : e)}</small><br><br>
+       ${isFile ? "這是 DIRECT 版，請確認 Chrome 有網路後重新整理。" : "請確認網路後重新整理。"}<br>
+       <small>版本：v3.3 PRE-RENDER</small>`;
+  }
+}
+document.querySelector("#adminNameLangBtn").onclick=()=>{
+  adminNameLanguage=adminNameLanguage==="zh"?"en":"zh";
+  refreshAdministrativeNameLanguage();
+};
+
+document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.querySelector("#startExamBtn").onclick=startExam;
+document.querySelector("#stopExamBtn").onclick=()=>stopExam({restore:true});
+document.querySelector("#countyFilter").onchange=()=>{
+  if(examActive)stopExam({restore:true});
+  current=null;
+  examQuestionPool=[];
+  examQuestionIndex=0;
+  examCompleted=false;
+  applyMapState({resetView:true});
+  if(mode==="learn")clearLearnSelection();
+  else showExamReadyState();
+};
+document.querySelector("#borderMode").onchange=()=>applyMapState({resetView:false});
+document.querySelector("#hardMode").onchange=()=>{clearMarks();};
+const layoutEl=document.querySelector(".layout");
+function refreshPanelButtons(){
+  const leftHidden=layoutEl.classList.contains("hide-left");
+  const rightHidden=layoutEl.classList.contains("hide-right");
+  document.querySelector("#toggleLeft").textContent=leftHidden?"顯示訓練面板":"隱藏訓練面板";
+  document.querySelector("#toggleRight").textContent=rightHidden?"顯示學習進度":"隱藏學習進度";
+  document.querySelector("#toggleLeft").classList.toggle("active",leftHidden);
+  document.querySelector("#toggleRight").classList.toggle("active",rightHidden);
+}
+function togglePanel(className){
+  layoutEl.classList.toggle(className);
+  refreshPanelButtons();
+}
+document.querySelector("#toggleLeft").onclick=()=>togglePanel("hide-left");
+document.querySelector("#toggleRight").onclick=()=>togglePanel("hide-right");
+refreshPanelButtons();
+document.querySelector("#resetView").onclick=()=>applyMapState({resetView:true});
+document.querySelector("#zoomIn").onclick=()=>svg.transition().duration(160).call(zoom.scaleBy,1.8);
+document.querySelector("#zoomOut").onclick=()=>svg.transition().duration(160).call(zoom.scaleBy,1/1.8);
+document.querySelector("#resetStats").onclick=()=>{
+  if(confirm("確定清除所有學習進度與錯題紀錄？")){
+    if(examActive)stopExam({restore:true});
+    stats={};
+    correctHistory=new Set();
+    localStorage.removeItem(STORE_KEY);
+    session={correct:0,wrong:0,times:[]};
+    updateSession();
+    refreshSide();
+    resetCurrentPlaceCard();
+    clearMarks();
+  }
+};
+// The SVG uses a fixed internal coordinate system.
+ // Panel toggles and window resizing require no map rebuild.
+init();
+</script>
+</body>
+</html>
