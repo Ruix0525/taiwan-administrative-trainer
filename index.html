@@ -53,24 +53,55 @@
     button,select,input{font:inherit}
     .app{width:100%;height:100vh;margin:0;padding:14px 18px;display:flex;flex-direction:column;overflow:hidden}
     .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:12px;flex:0 0 auto}
-    .brand{font-weight:850;font-size:24px;letter-spacing:-.5px}
-    .brand-row{display:flex;align-items:baseline;gap:8px}
-    .author-credit{color:var(--muted);font-size:11px;font-weight:650;letter-spacing:.02em}
-    .author-stack{
-      display:inline-flex;
-      flex-direction:column;
-      align-items:flex-start;
-      justify-content:center;
-      gap:1px;
-      line-height:1.05;
+    .brand-grid{
+      display:grid;
+      grid-template-columns:max-content max-content;
+      grid-template-rows:auto auto;
+      column-gap:10px;
+      row-gap:2px;
+      align-items:baseline;
+      width:max-content;
+    }
+    .brand{
+      grid-column:1;
+      grid-row:1;
+      font-weight:850;
+      font-size:24px;
+      line-height:1.08;
+      letter-spacing:-.5px;
+    }
+    .author-credit{
+      grid-column:2;
+      grid-row:1;
+      align-self:center;
+      color:var(--muted);
+      font-size:11px;
+      line-height:1;
+      font-weight:650;
+      letter-spacing:.02em;
+      white-space:nowrap;
+      transform:translateY(-2px);
+    }
+    .sub{
+      grid-column:1;
+      grid-row:2;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.15;
+      margin-top:0!important;
     }
     .theme-credit{
+      grid-column:2;
+      grid-row:2;
+      align-self:start;
       color:var(--muted);
       font-size:8.5px;
+      line-height:1.15;
       font-weight:600;
       letter-spacing:.01em;
       opacity:.78;
       white-space:nowrap;
+      transform:translateY(-1px);
     }
     .mobile-header-actions,.mobile-drawer-head,.mobile-settings-actions,
     .mobile-overlay,.mobile-bottom-nav,.mobile-exam-action{display:none}
@@ -155,7 +186,6 @@
     }
 
 
-    .sub{color:var(--muted);font-size:13px;margin-top:2px}
     .top-actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn{border:1px solid var(--line);background:var(--button);color:var(--ink);padding:10px 13px;border-radius:12px;cursor:pointer;font-weight:700}
     .btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.06)}
@@ -322,10 +352,25 @@
         z-index:120;
       }
       .topbar>div:first-child{min-width:0}
-      .brand-row{gap:5px;align-items:baseline}
-      .brand{font-size:19px;white-space:nowrap;letter-spacing:-.35px}
-      .author-credit{font-size:10px;white-space:nowrap}
-      .theme-credit{font-size:7.5px}
+      .brand-grid{
+        column-gap:7px;
+        row-gap:1px;
+        max-width:100%;
+      }
+      .brand{
+        font-size:19px;
+        line-height:1.06;
+        white-space:nowrap;
+        letter-spacing:-.35px;
+      }
+      .author-credit{
+        font-size:10px;
+        transform:translateY(-2px);
+      }
+      .theme-credit{
+        font-size:7.5px;
+        transform:translateY(-1px);
+      }
       .sub{display:none}
       .top-actions{display:none!important}
 
@@ -636,14 +681,12 @@
 <div class="app">
   <div class="topbar">
     <div>
-      <div class="brand-row">
-          <div class="brand">🇹🇼 台灣行政區訓練</div>
-          <span class="author-stack">
-            <span class="author-credit">by Ru1zly</span>
-            <span class="theme-credit">aceryue for 日夜模式</span>
-          </span>
-        </div>
-      <div class="sub">台灣鄉鎮市區互動地圖訓練</div>
+      <div class="brand-grid">
+        <div class="brand">🇹🇼 台灣行政區訓練</div>
+        <span class="author-credit">by Ru1zly</span>
+        <div class="sub">台灣鄉鎮市區互動地圖訓練</div>
+        <span class="theme-credit">aceryue for 日夜模式</span>
+      </div>
     </div>
     <div class="mobile-header-actions">
       <button class="mobile-icon-btn" id="mobileMenuBtn" aria-label="開啟設定">☰</button>
