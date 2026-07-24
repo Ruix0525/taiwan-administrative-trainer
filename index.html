@@ -243,6 +243,32 @@
       border-color:var(--line);
       box-shadow:0 2px 7px rgba(16,24,40,.08);
     }
+    .scope-pill.scope-disabled{
+      position:relative;
+      cursor:not-allowed;
+      opacity:.58;
+      overflow:hidden;
+      box-shadow:none;
+      pointer-events:none;
+    }
+    .scope-pill.scope-disabled::after{
+      content:"";
+      position:absolute;
+      left:12%;
+      top:50%;
+      width:76%;
+      height:3px;
+      border-radius:999px;
+      background:#c8aa52;
+      transform:rotate(-28deg);
+      transform-origin:center;
+      box-shadow:0 0 0 1px rgba(133,101,24,.08);
+      pointer-events:none;
+    }
+    html[data-theme="dark"] .scope-pill.scope-disabled::after{
+      background:#9d802f;
+      box-shadow:0 0 0 1px rgba(255,230,150,.05);
+    }
     .scope-hint{
       display:flex;
       align-items:flex-start;
@@ -3076,20 +3102,32 @@ const scopeHint=document.querySelector("#scopeHint");
 
 function updateScopeHint(){
   if(!scopeHint)return;
-  const active=!!beginnerModeInput?.checked && scopeMode==="county";
-  const countySelect=document.querySelector("#countyFilter");
-  if(countySelect){
-    countySelect.disabled=active;
-    countySelect.classList.toggle("scope-select-locked",active);
-    countySelect.setAttribute("aria-disabled",active?"true":"false");
+  const beginnerActive=!!beginnerModeInput?.checked;
+
+  if(scopeCountyBtn){
+    scopeCountyBtn.disabled=beginnerActive;
+    scopeCountyBtn.classList.toggle("scope-disabled",beginnerActive);
+    scopeCountyBtn.setAttribute("aria-disabled",beginnerActive?"true":"false");
+    scopeCountyBtn.title=beginnerActive
+      ? "Beginner 不適用於單一縣市"
+      : "依縣市選擇範圍";
   }
-  if(active){
+
+  // Beginner automatically uses Region scope, so the dropdown must stay usable.
+  const scopeSelect=document.querySelector("#countyFilter");
+  if(scopeSelect){
+    scopeSelect.disabled=false;
+    scopeSelect.classList.remove("scope-select-locked");
+    scopeSelect.setAttribute("aria-disabled","false");
+  }
+
+  if(beginnerActive){
     scopeHint.style.display="flex";
     scopeHint.innerHTML=`
       <span class="scope-hint-icon" aria-hidden="true">i</span>
       <span class="scope-hint-copy">
         <span class="scope-hint-title">Beginner：不適用於單一縣市</span>
-        <span class="scope-hint-sub">請選擇「區域」或「全台」。</span>
+        <span class="scope-hint-sub">請從「區域」中選擇。</span>
       </span>
     `;
   }else{
@@ -3134,18 +3172,19 @@ function setDifficultyMode(nextMode){
 
   let scopeMessage="";
   if(beginnerModeInput.checked){
-    if(scopeMode==="county"){
-      populateScopeSelect("ALL");
-      scopeMessage="Beginner 模式已切換為全台範圍；若想縮小範圍，可改選「區域」。";
+    // Beginner is meant to distinguish counties across more than one county.
+    // Switch to Region automatically; All Taiwan is also available there.
+    if(scopeMode!=="region"){
+      setScopeMode("region",{selectedValue:previousRegionSelection||"ALL"});
     }else{
       populateScopeSelect(currentScopeName());
     }
-  }else if(beginnerWasOn && scopeMode==="county") {
-    populateScopeSelect(previousCountySelection||"ALL");
+    scopeMessage="Beginner 不適用於單一縣市，已自動切換到「區域」。";
   }else{
     populateScopeSelect(currentScopeName());
   }
 
+  updateScopeHint();
   applyPersistentMarks();
   handleScopeChange({resetView:true,message:scopeMessage});
 }
@@ -3154,12 +3193,9 @@ beginnerModeBtn.onclick=()=>setDifficultyMode("beginner");
 hardModeBtn.onclick=()=>setDifficultyMode("hard");
 extremeModeBtn.onclick=()=>setDifficultyMode("extreme");
 scopeCountyBtn.onclick=()=>{
-  const beginnerLock=beginnerModeInput.checked;
-  setScopeMode("county",{selectedValue:beginnerLock?"ALL":previousCountySelection});
-  handleScopeChange({
-    resetView:true,
-    message:beginnerLock?"Beginner 不適用於單一縣市，請選擇「區域」或「全台」。":""
-  });
+  if(beginnerModeInput.checked)return;
+  setScopeMode("county",{selectedValue:previousCountySelection});
+  handleScopeChange({resetView:true});
 };
 scopeRegionBtn.onclick=()=>{
   setScopeMode("region",{selectedValue:previousRegionSelection});
@@ -3176,15 +3212,6 @@ document.querySelectorAll(".mode-btn").forEach(b=>b.onclick=()=>{
 document.querySelector("#startExamBtn").onclick=startExam;
 document.querySelector("#stopExamBtn").onclick=()=>stopExam({restore:true});
 document.querySelector("#countyFilter").onchange=()=>{
-  const select=document.querySelector("#countyFilter");
-  if(beginnerModeInput.checked && scopeMode==="county" && select.value!=="ALL"){
-    select.value="ALL";
-    handleScopeChange({
-      resetView:true,
-      message:"Beginner 不適用於單一縣市，請選擇「區域」或「全台」。"
-    });
-    return;
-  }
   if(scopeMode==="county")previousCountySelection=currentScopeName();
   else previousRegionSelection=currentScopeName();
   updateScopeHint();
@@ -3470,8 +3497,8 @@ const TUTORIAL_STEPS=[
         <div class="tutorial-mini-card"><b>縣市</b><span>全台，或單獨選一個縣市集中練習。</span></div>
         <div class="tutorial-mini-card"><b>區域</b><span>全台、北部、中部、南部、東部或離島。</span></div>
       </div>
-      <br><strong>Beginner 不適用於單一縣市</strong>，開啟 Beginner 時請使用
-      <strong>全台</strong>或改選<strong>區域</strong>。
+      <br><strong>Beginner 不適用於單一縣市</strong>。開啟 Beginner 後會自動切到
+      <strong>區域</strong>，並停用「縣市」按鈕；你仍可在區域選單使用<strong>全台</strong>。
     `
   },
   {
@@ -3481,12 +3508,12 @@ const TUTORIAL_STEPS=[
     body:`
       <div class="tutorial-mini-grid">
         <div class="tutorial-mini-card"><b>Normal</b><span>答對保留綠色；答錯的正確位置保留紅色。</span></div>
-        <div class="tutorial-mini-card"><b>Beginner</b><span>點到正確縣市就算答對，並用綠色顯示真正答案的鄉鎮市區。</span></div>
+        <div class="tutorial-mini-card"><b>Beginner</b><span>會自動切到區域範圍；點到正確縣市就算答對，並用綠色顯示真正答案的鄉鎮市區。</span></div>
         <div class="tutorial-mini-card"><b>Hard</b><span>答對後不保留綠色提示。</span></div>
         <div class="tutorial-mini-card"><b>Extreme</b><span>答對、答錯後都不保留顏色提示。</span></div>
       </div>
-      <br>Beginner 請搭配 <strong>全台</strong>或<strong>區域</strong>使用；
-      單一縣市範圍會被停用。再按一次已選取的難度，就會回到 Normal。
+      <br>開啟 Beginner 時會自動切到 <strong>區域</strong>，並把「縣市」按鈕劃線停用；
+      可選北部、中部、南部、東部、離島或<strong>全台</strong>。再按一次已選取的難度，就會回到 Normal。
     `
   },
   {
