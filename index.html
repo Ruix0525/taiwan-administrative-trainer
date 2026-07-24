@@ -277,9 +277,12 @@
     .scope-hint{
       position:absolute;
       left:0;
+      right:0;
       top:calc(100% + 8px);
       z-index:40;
-      width:min(310px,calc(100vw - 40px));
+      width:auto;
+      max-width:100%;
+      box-sizing:border-box;
       display:flex;
       align-items:flex-start;
       gap:10px;
@@ -3161,9 +3164,11 @@ function updateScopeHint(){
     scopeCountyBtn.disabled=false;
     scopeCountyBtn.classList.toggle("scope-disabled",beginnerActive);
     scopeCountyBtn.setAttribute("aria-disabled",beginnerActive?"true":"false");
-    scopeCountyBtn.title=beginnerActive
-      ? "Beginner 不適用於單一縣市"
-      : "依縣市選擇範圍";
+    if(beginnerActive){
+      scopeCountyBtn.removeAttribute("title");
+    }else{
+      scopeCountyBtn.title="依縣市選擇範圍";
+    }
   }
 
   // Beginner automatically uses Region scope, so the dropdown remains usable.
