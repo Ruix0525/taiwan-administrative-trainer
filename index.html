@@ -306,7 +306,7 @@
     }
     .tutorial-kicker{
       color:#a16207;
-      font-size:11px;
+      font-size:12px;
       font-weight:900;
       letter-spacing:.08em;
       text-transform:uppercase;
@@ -315,21 +315,21 @@
     html[data-theme="dark"] .tutorial-kicker{color:#facc15}
     .tutorial-title{
       margin:0;
-      font-size:21px;
+      font-size:24px;
       line-height:1.18;
       letter-spacing:-.25px;
     }
     .tutorial-step-count{
       flex:0 0 auto;
       color:var(--muted);
-      font-size:12px;
+      font-size:13px;
       font-weight:800;
       padding-top:3px;
     }
     .tutorial-body{
       margin-top:13px;
       color:var(--muted);
-      font-size:13px;
+      font-size:15px;
       line-height:1.65;
       overflow:auto;
       min-height:0;
@@ -351,13 +351,13 @@
     .tutorial-mini-card b{
       display:block;
       color:var(--ink);
-      font-size:12px;
+      font-size:14px;
       margin-bottom:2px;
     }
     .tutorial-mini-card span{
       display:block;
-      font-size:11px;
-      line-height:1.35;
+      font-size:13px;
+      line-height:1.4;
     }
     .tutorial-color-row{
       display:flex;
@@ -376,6 +376,7 @@
       display:flex;
       gap:5px;
       margin-top:16px;
+      flex:0 0 auto;
     }
     .tutorial-progress-dots span{
       width:7px;
@@ -389,15 +390,21 @@
       background:#eab308;
     }
     .tutorial-actions{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:6;
       display:flex;
       justify-content:flex-end;
       align-items:center;
-      gap:7px;
-      margin-top:auto;
-      padding-top:13px;
-      border-top:1px solid var(--line);
-      flex:0 0 auto;
+      gap:8px;
+      margin:0;
+      padding:8px;
+      border:1px solid var(--line);
+      border-radius:14px;
       background:var(--panel);
+      box-shadow:0 12px 38px rgba(0,0,0,.28);
+      pointer-events:auto;
     }
     .tutorial-actions-right{
       display:flex;
@@ -419,7 +426,7 @@
       padding:0 12px;
       cursor:pointer;
       font-weight:800;
-      font-size:12px;
+      font-size:13px;
     }
     .tutorial-text-btn{
       border:0;
@@ -442,7 +449,7 @@
     }
     .tutorial-primary-btn:hover{filter:brightness(.97)}
     .tutorial-card.side-placement{
-      width:min(310px,calc(100vw - 28px));
+      width:min(340px,calc(100vw - 28px));
     }
 
     body.tutorial-active{
@@ -934,11 +941,17 @@
         padding:16px;
         border-radius:17px;
       }
-      .tutorial-title{font-size:19px}
-      .tutorial-body{font-size:12.5px}
+      .tutorial-title{font-size:22px}
+      .tutorial-body{font-size:14px}
       .tutorial-mini-grid{grid-template-columns:1fr 1fr}
-      .tutorial-actions{align-items:center}
-      .tutorial-text-btn{font-size:11px}
+      .tutorial-actions{
+        right:10px;
+        bottom:calc(10px + env(safe-area-inset-bottom));
+        max-width:calc(100vw - 20px);
+        align-items:center;
+        padding:7px;
+      }
+      .tutorial-text-btn{font-size:12px}
 
       .mobile-settings-actions #mobileResetStatsBtn{grid-column:1/-1}
       .mobile-settings-actions #mobileTutorialBtn{grid-column:1/-1}
@@ -1070,6 +1083,16 @@
     }
 
     @media (max-width:390px){
+      .tutorial-actions{
+        gap:5px;
+      }
+      .tutorial-text-btn,
+      .tutorial-secondary-btn,
+      .tutorial-primary-btn{
+        padding-left:9px;
+        padding-right:9px;
+      }
+
       .map-panel.name-question-mode .question{font-size:23px}
       .map-panel.learn-mode .question{font-size:21px}
       .difficulty-switch{grid-template-columns:1fr}
@@ -1283,14 +1306,15 @@
     </div>
     <div class="tutorial-body" id="tutorialBody"></div>
     <div class="tutorial-progress-dots" id="tutorialDots" aria-hidden="true"></div>
-    <div class="tutorial-actions">
-      <button class="tutorial-text-btn" id="tutorialSkipBtn" type="button">跳過教學</button>
-      <div class="tutorial-actions-right">
-        <button class="tutorial-secondary-btn" id="tutorialPrevBtn" type="button">上一步</button>
-        <button class="tutorial-primary-btn" id="tutorialNextBtn" type="button">下一步</button>
-      </div>
-    </div>
   </section>
+
+  <div class="tutorial-actions" id="tutorialFixedActions">
+    <button class="tutorial-text-btn" id="tutorialSkipBtn" type="button">跳過教學</button>
+    <div class="tutorial-actions-right">
+      <button class="tutorial-secondary-btn" id="tutorialPrevBtn" type="button">上一步</button>
+      <button class="tutorial-primary-btn" id="tutorialNextBtn" type="button">下一步</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -3067,11 +3091,15 @@ const TUTORIAL_STEPS=[
   },
   {
     title:"準備好了",
+    desktopTarget:"#tutorialBtn",
+    mobileTarget:"#mobileTutorialBtn",
+    mobilePanel:"settings",
     body:`
       建議第一次使用先從 <strong>Learn</strong> 看熟輪廓，
       再用 <strong>Beginner + Find</strong> 練到能辨認縣市，
       最後回到 Normal、Hard 或 Extreme 挑戰精確位置。<br><br>
-      完成後背景就會解鎖，可以開始訓練。
+      完成後背景就會解鎖，可以開始訓練。之後隨時都能按
+      <strong>「新手教學」</strong>重新播放。
     `
   }
 ];
@@ -3107,7 +3135,7 @@ function tutorialPrepareMobilePanel(step){
 }
 
 function tutorialPositionCard(target){
-  const gap=14;
+  const gap=12;
   const pad=10;
   const vw=window.innerWidth;
   const vh=window.innerHeight;
@@ -3116,13 +3144,29 @@ function tutorialPositionCard(target){
 
   if(tutorialIsMobile()){
     const cardRect=tutorialCard.getBoundingClientRect();
-    const left=Math.max(pad,(vw-cardRect.width)/2);
-    const top=Math.max(
-      pad,
-      vh-cardRect.height-14-(window.visualViewport?.offsetTop||0)
-    );
+
+    if(!target){
+      const left=Math.max(pad,(vw-cardRect.width)/2);
+      const top=Math.max(pad,(vh-cardRect.height)/2);
+      tutorialCard.style.left=`${left}px`;
+      tutorialCard.style.top=`${top}px`;
+      return;
+    }
+
+    const r=target.getBoundingClientRect();
+
+    // Mobile: keep the card immediately above or below the highlighted target.
+    let top=r.bottom+gap;
+    if(top+cardRect.height>vh-pad){
+      top=r.top-cardRect.height-gap;
+    }
+    top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
+
+    let left=r.left+(r.width-cardRect.width)/2;
+    left=Math.max(pad,Math.min(vw-cardRect.width-pad,left));
+
     tutorialCard.style.left=`${left}px`;
-    tutorialCard.style.top=`${Math.min(top,vh-cardRect.height-pad)}px`;
+    tutorialCard.style.top=`${top}px`;
     return;
   }
 
@@ -3134,49 +3178,73 @@ function tutorialPositionCard(target){
   }
 
   const r=target.getBoundingClientRect();
-
-  // For a large highlighted target (especially the full map), keep the
-  // tutorial card outside the spotlight instead of covering the content.
-  const largeTarget=
-    r.width>vw*.48 ||
-    r.height>vh*.58;
+  const largeTarget=r.width>vw*.48 || r.height>vh*.58;
 
   if(largeTarget){
     tutorialCard.classList.add("side-placement");
   }
 
-  // Re-measure after side-placement width is applied.
+  // Re-measure after compact side width is applied.
   const cardRect=tutorialCard.getBoundingClientRect();
-  const leftSpace=r.left-gap-pad;
-  const rightSpace=vw-r.right-gap-pad;
 
-  let left;
-  let top;
-
-  // Prefer the side with enough room. If neither side fully fits, use the
-  // larger gutter and clamp the compact card inside the viewport.
-  if(rightSpace>=cardRect.width || rightSpace>=leftSpace){
-    left=r.right+gap;
-  }else{
-    left=r.left-cardRect.width-gap;
-  }
-
-  left=Math.max(pad,Math.min(vw-cardRect.width-pad,left));
-
-  // Vertically center the card relative to the highlighted block where possible.
-  top=r.top+(r.height-cardRect.height)/2;
-  top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
-
-  // If the chosen card rectangle would overlap a large target because neither
-  // gutter is wide enough, explicitly anchor it to the larger screen edge.
-  if(largeTarget){
-    if(leftSpace>=rightSpace){
-      left=pad;
-    }else{
-      left=vw-cardRect.width-pad;
+  const candidates=[
+    // Right of highlight.
+    {
+      left:r.right+gap,
+      top:r.top+(r.height-cardRect.height)/2,
+      priority:0
+    },
+    // Left of highlight.
+    {
+      left:r.left-cardRect.width-gap,
+      top:r.top+(r.height-cardRect.height)/2,
+      priority:1
+    },
+    // Below highlight.
+    {
+      left:r.left+(r.width-cardRect.width)/2,
+      top:r.bottom+gap,
+      priority:2
+    },
+    // Above highlight.
+    {
+      left:r.left+(r.width-cardRect.width)/2,
+      top:r.top-cardRect.height-gap,
+      priority:3
     }
-    top=Math.max(pad,Math.min(vh-cardRect.height-pad,top));
+  ];
+
+  function fullyFits(c){
+    return (
+      c.left>=pad &&
+      c.top>=pad &&
+      c.left+cardRect.width<=vw-pad &&
+      c.top+cardRect.height<=vh-pad
+    );
   }
+
+  // Prefer an adjacent position that fully fits in the viewport.
+  let chosen=candidates.find(fullyFits);
+
+  if(!chosen){
+    // If none fits perfectly, choose the candidate requiring the least clamping.
+    chosen=candidates
+      .map(c=>{
+        const clampedLeft=Math.max(pad,Math.min(vw-cardRect.width-pad,c.left));
+        const clampedTop=Math.max(pad,Math.min(vh-cardRect.height-pad,c.top));
+        const movement=Math.abs(clampedLeft-c.left)+Math.abs(clampedTop-c.top);
+        return {...c,clampedLeft,clampedTop,movement};
+      })
+      .sort((a,b)=>a.movement-b.movement || a.priority-b.priority)[0];
+
+    chosen={
+      left:chosen.clampedLeft,
+      top:chosen.clampedTop
+    };
+  }
+
+  const left=Math.max(pad,Math.min(vw-cardRect.width-pad,chosen.left));
+  const top=Math.max(pad,Math.min(vh-cardRect.height-pad,chosen.top));
 
   tutorialCard.style.left=`${left}px`;
   tutorialCard.style.top=`${top}px`;
